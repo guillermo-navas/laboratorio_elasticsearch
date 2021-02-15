@@ -133,25 +133,25 @@ Por último levantaremos kibana.
 1. Levantamos el primero nodo de elasticsearch.
 
   Esta vez no usaremos el parametro `single.node` dado que queremos levantar un cluster funcional de 3 nodos.
-  Usaremos los siguientes parametros:  
-    * --net: Nombre de la red docker
-    * --ip: Dirección ip asignanda al contenedor. Debe ser una dirección válida para la red indicada previamente.
-    * --name: Nombre del contenedor
-    * --ulimit memlock=-1:-1 : Quitamos los limites para no tener problemas con la asignación de recursos.
-    * "node.name=es01": Nombre del nodo.
-    * "cluster.name=es-docker-cluster": nombre del cluster de elasticsearch.
-    * "discovery.seed_hosts=es02,es03": nombre de los otros dos nodos que forman el cluster de elasticsearch.
-    * "bootstrap.memory_lock=true": Activamos el memory lock.
-    * "ES_JAVA_OPTS=-Xms512m -Xmx512m": Seteamos la jvm memory de proceso java.
+  Usaremos los siguientes parametros: 
+  
+  * --net: Nombre de la red docker
+  * --ip: Dirección ip asignanda al contenedor. Debe ser una dirección válida para la red indicada previamente.
+  * --name: Nombre del contenedor
+  * --ulimit memlock=-1:-1 : Quitamos los limites para no tener problemas con la asignación de recursos.
+  * "node.name=es01": Nombre del nodo.
+  * "cluster.name=es-docker-cluster": nombre del cluster de elasticsearch.
+  * "discovery.seed_hosts=es02,es03": nombre de los otros dos nodos que forman el cluster de elasticsearch.
+  * "bootstrap.memory_lock=true": Activamos el memory lock.
+  * "ES_JAVA_OPTS=-Xms512m -Xmx512m": Seteamos la jvm memory de proceso java.  
 
-    ```bash
-      ➜  ~ docker run -d --net elastic_network --ip 172.18.1.2 --ulimit memlock=-1:-1  -e "node.name=es01" -e "cluster.name=es-docker-cluster" -e "discovery.seed_hosts=es02,es03" -e "cluster.initial_master_nodes=es01,es02,es03" -e "bootstrap.memory_lock=true" -e "ES_JAVA_OPTS=-Xms512m -Xmx512m" --name es01 docker.elastic.co/elasticsearch/elasticsearch:7.10.0
-    ```
-
+  ```bash
+    ➜  ~ docker run -d --net elastic_network --ip 172.18.1.2 --ulimit memlock=-1:-1  -e "node.name=es01" -e "cluster.name=es-docker-cluster" -e "discovery.seed_hosts=es02,es03" -e "cluster.initial_master_nodes=es01,es02,es03" -e "bootstrap.memory_lock=true" -e "ES_JAVA_OPTS=-Xms512m -Xmx512m" --name es01 docker.elastic.co/elasticsearch/elasticsearch:7.10.0
+  ```
+    
   Una vez levantado el log comenzará a mostrar errores dado que no encuentra los otros dos nodos que conforman el cluster.
-
-    ```bash
-      ➜  ~ docker logs --tail=30 es01
+  ```bash
+    ➜  ~ docker logs --tail=30 es01
       {"type": "server", "timestamp": "2021-02-15T14:58:33,647Z", "level": "WARN", "component": "o.e.d.SeedHostsResolver", "cluster.name": "es-docker-cluster", "node.name": "es01", "message": "failed to resolve host [es03]", "cluster.uuid": "lqStUOrUSFS9OrZ5xUTiZg", "node.id": "MrHS8IFIQ1e-9FSFOvekBg" ,
       "stacktrace": ["java.net.UnknownHostException: es03",
       "at java.net.InetAddress$CachedAddresses.get(InetAddress.java:800) ~[?:?]",
@@ -161,40 +161,38 @@ Por último levantaremos kibana.
       "at org.elasticsearch.transport.TcpTransport.parse(TcpTransport.java:556) ~[elasticsearch-7.10.0.jar:7.10.0]",
       "at org.elasticsearch.transport.TcpTransport.addressesFromString(TcpTransport.java:498) ~[elasticsearch-7.10.0.jar:7.10.0]",
       "at org.elasticsearch.transport.TransportService.addressesFromString(TransportService.java:864) ~[elasticsearch-7.10.0.jar:7.10.0]"
-  
-    ```
+  ```
 
 2. Levantamos el segundo nodo `es02`. Usamos el mismo procedimiento anteriormente descripto cambiando las variables oportunas
 
   Necesitamos modificar la ip, el node.name, discovery.seed_hosts y --name del contenedor
 
-    ```bash
-      ➜  ~ sudo docker run -d --net elastic_network --ip 172.18.1.3 --ulimit memlock=-1:-1  -e "node.name=es02" -e "cluster.name=es-docker-cluster" -e "discovery.seed_hosts=es01,es03" -e "cluster.initial_master_nodes=es01,es02,es03" -e "bootstrap.memory_lock=true" -e "ES_JAVA_OPTS=-Xms512m -Xmx512m" --name es02 docker.elastic.co/elasticsearch/elasticsearch:7.10.0
-    ```
+  ```bash
+    ➜  ~ sudo docker run -d --net elastic_network --ip 172.18.1.3 --ulimit memlock=-1:-1  -e "node.name=es02" -e "cluster.name=es-docker-cluster" -e "discovery.seed_hosts=es01,es03" -e "cluster.initial_master_nodes=es01,es02,es03" -e "bootstrap.memory_lock=true" -e "ES_JAVA_OPTS=-Xms512m -Xmx512m" --name es02 docker.elastic.co/elasticsearch/elasticsearch:7.10.0
+  ```
 
   Vemos que una vez desplegado el nodo 2 los logs de es01 deberían dejar de mostrar warning e indicar que ha descubierto el nodo es02
 
-    ```bash
-      ➜  ~ docker logs --tail=30 es01
+  ```bash
+    ➜  ~ docker logs --tail=30 es01
       {"type": "server", "timestamp": "2021-02-15T15:10:41,156Z", "level": "INFO", "component": "o.e.c.c.CoordinationState", "cluster.name": "es-docker-cluster", "node.name": "es01", "message": "cluster UUID set to [rnUF_FKRS42ni1DmX7x36Q]" }
-      {"type": "server", "timestamp": "2021-02-15T15:10:41,245Z", "level": "INFO", "component": "o.e.c.s.ClusterApplierService", "cluster.name": "es-docker-cluster", "node.name": "es01", "message": "master node changed {previous [], current [{es02}{le9oqAsIQA-qpyDY5Di6hA}{BIdQvgvpShathzFm_7Tz4A}{172.18.1.3}{172.18.1.3:9300}{cdhilmrstw}{ml.machine_memory=16702734336, ml.max_open_jobs=20, xpack.installed=true, transform.node=true}]}, added {{es02}{le9oqAsIQA-qpyDY5Di6hA}{BIdQvgvpShathzFm_7Tz4A}{172.18.1.3}{172.18.1.3:9300}{cdhilmrstw}{ml.machine_memory=16702734336, ml.max_open_jobs=20, xpack.installed=true, transform.node=true}}, term: 1, version: 1, reason: ApplyCommitRequest{term=1, version=1, sourceNode={es02}{le9oqAsIQA-qpyDY5Di6hA}{BIdQvgvpShathzFm_7Tz4A}{172.18.1.3}{172.18.1.3:9300}{cdhilmrstw}{ml.machine_memory=16702734336, ml.max_open_jobs=20, xpack.installed=true, transform.node=true}}" }
-      
-    ```
+      {"type": "server", "timestamp": "2021-02-15T15:10:41,245Z", "level": "INFO", "component": "o.e.c.s.ClusterApplierService", "cluster.name": "es-docker-cluster", "node.name": "es01", "message": "master node changed {previous [], current [{es02}{le9oqAsIQA-qpyDY5Di6hA}{BIdQvgvpShathzFm_7Tz4A}{172.18.1.3}{172.18.1.3:9300}{cdhilmrstw}{ml.machine_memory=16702734336, ml.max_open_jobs=20, xpack.installed=true, transform.node=true}]}, added {{es02}{le9oqAsIQA-qpyDY5Di6hA}{BIdQvgvpShathzFm_7Tz4A}{172.18.1.3}{172.18.1.3:9300}{cdhilmrstw}{ml.machine_memory=16702734336, ml.max_open_jobs=20, xpack.installed=true, transform.node=true}}, term: 1, version: 1, reason: ApplyCommitRequest{term=1, version=1, sourceNode={es02}{le9oqAsIQA-qpyDY5Di6hA}{BIdQvgvpShathzFm_7Tz4A}{172.18.1.3}{172.18.1.3:9300}{cdhilmrstw}{ml.machine_memory=16702734336, ml.max_open_jobs=20, xpack.installed=true, transform.node=true}}" }    
+  ```
 
 3. Mismo procedimiento anterior seteando las variables para el nodo3.
 
   Necesitamos modificar la ip, el node.name, discovery.seed_hosts y --name del contenedor
 
-    ```bash
-      ➜  ~ sudo docker run -d --net elastic_network --ip 172.18.1.4 --ulimit memlock=-1:-1  -e "node.name=es03" -e "cluster.name=es-docker-cluster" -e "discovery.seed_hosts=es01,es02" -e "cluster.initial_master_nodes=es01,es02,es03" -e "bootstrap.memory_lock=true" -e "ES_JAVA_OPTS=-Xms512m -Xmx512m" --name es03 docker.elastic.co/elasticsearch/elasticsearch:7.10.0
-    ```
+  ```bash
+    ➜  ~ sudo docker run -d --net elastic_network --ip 172.18.1.4 --ulimit memlock=-1:-1  -e "node.name=es03" -e "cluster.name=es-docker-cluster" -e "discovery.seed_hosts=es01,es02" -e "cluster.initial_master_nodes=es01,es02,es03" -e "bootstrap.memory_lock=true" -e "ES_JAVA_OPTS=-Xms512m -Xmx512m" --name es03 docker.elastic.co/elasticsearch/elasticsearch:7.10.0
+  ```
 
   Una vez levantado el tercer nodo veremos un mensaje en los logs del nodo 1 y 2 que el 3er nodo se ha incorporado al cluster.
 
-    ```bash
-      ➜  ~ docker logs --tail=30 es01
+  ```bash
+    ➜  ~ docker logs --tail=30 es01
       {"type": "server", "timestamp": "2021-02-15T15:15:09,899Z", "level": "INFO", "component": "o.e.c.s.ClusterApplierService", "cluster.name": "es-docker-cluster", "node.name": "es01", "message": "added {{es03}{xZEkA7zkSLqtJo3n2h9k3g}{i6OI5rM7RN2C9R89-qtUrQ}{172.18.1.4}{172.18.1.4:9300}{cdhilmrstw}{ml.machine_memory=16702734336, ml.max_open_jobs=20, xpack.installed=true, transform.node=true}}, term: 1, version: 41, reason: ApplyCommitRequest{term=1, version=41, sourceNode={es02}{le9oqAsIQA-qpyDY5Di6hA}{BIdQvgvpShathzFm_7Tz4A}{172.18.1.3}{172.18.1.3:9300}{cdhilmrstw}{ml.machine_memory=16702734336, ml.max_open_jobs=20, xpack.installed=true, transform.node=true}}", "cluster.uuid": "rnUF_FKRS42ni1DmX7x36Q", "node.id": "RbWseV8SQmSpgdqRUfyafQ"  }
-    ```
+  ```
 
 4. Comprobamos el estado del cluster.
 
