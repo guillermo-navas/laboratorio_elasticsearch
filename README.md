@@ -13,7 +13,7 @@
   * Ingestar nuestro primer documento.
   * Consultar creandos en nuestro cluster.
 
-##### Ejercicios
+#### Ejercicios
 ##### Instalación Elasticsarch/kibana. Parte 1
 
 Realizaremos el despliegue del entorno de desarrollo de elasticsearch de tipo `single node` haciendo uso de contenedores docker. 
@@ -112,7 +112,7 @@ A posteriori consultaremos el indice que se ha creado y borraremos el indice.
   }
   ```
 
-### Laboratorio 2 - Introducción
+### Laboratorio 2 - Arquitectura
 
 #### Requisitos
 
@@ -123,8 +123,7 @@ A posteriori consultaremos el indice que se ha creado y borraremos el indice.
 
   * Levantar un cluster de 3 nodos elasticsearch + kibana
 
-##### Ejercicios
-##### Creando un cluster 3 nodos Elasticsarch/kibana. Parte 1
+#### Ejercicios 
 
 Para esta practica crearemos un cluster de 3 nodos sobre docker. Para ello iremos levantando un nodo tras otro e iremos viendo como se comporta el cluster.
 
@@ -273,3 +272,301 @@ Por último levantaremos kibana.
   ```bash
     ➜  ~ sudo docker run -e SERVER_NAME=es_kibana -e ELASTICSEARCH_HOSTS='["http://es01:9200","http://es02:9200","http://es03:9200"]' --net elastic_network -d --name kibana -p 5601:5601 docker.elastic.co/kibana/kibana:7.10.0
   ```
+
+### Laboratorio 3 - Trabajando con los datos
+
+#### Requisitos
+
+  * Docker versión >= 19.03
+  * jq
+  * elasticsearch + kibana
+
+#### Objetivos
+
+  * Realizar carga de datos utilizando `_bulk`
+  * Realizar un búsqueda utilizando `_search`
+  * Vamos a consultar el mapping de un indice `_mapping`
+  * Realizar una operación de delete utilizando `_delete_by_query`
+
+#### Ejercicios
+
+En esta práctica empezaremos a realizar operaciones con datos. Ingesta, busqueda y borrado. También consultaremos los tipos de los datos ingestados.
+
+
+1. Lo primero que realizaremos es una operación `_bulk` para ingestar un set de datos de pruebas en nuestro cluster de elasticsearch.
+
+  Descargamos el set de datos en local.
+
+  ```bash
+    wget https://github.com/elastic/elasticsearch/blob/master/docs/src/test/resources/accounts.json\?raw\=true --output-document account.json
+  ```
+  Haciendo uso de `bulk` y el índice destino realizaremos una operación bulk para la ingesta de los datos. En este caso el indice se llama accounts.
+
+  Por otro lado en la URL indicamos una de las ips de nuestro nodos.
+
+  ```bash
+    ➜  curl -XPOST "http://172.18.1.2:9200/accounts/_bulk?pretty&refresh" -H 'Content-Type: application/json' --data-binary "@account.json"
+  ```
+
+  Si todo ha ido correctamente veremos un nuevo indice con el nombre accounts
+
+  ```bash
+    ➜  ~ curl -s -XGET "http://172.18.1.2:9200/_cat/indices"
+    green open .apm-custom-link                6umuDMRzQk6XhtdTUm4Jkg 1 1    0   0    416b    208b
+    green open .kibana_task_manager_1          fGDxk5BCRiStJ_ELJmJTJA 1 1    5 255 277.7kb 138.6kb
+    green open .apm-agent-configuration        9vi-CjdYTwCG516C9HhOdA 1 1    0   0    416b    208b
+    green open .kibana-event-log-7.10.0-000001 jULvYCcTTB67a2xPlYhGog 1 1    1   0  11.2kb   5.6kb
+    green open .async-search                   EGEQGOG2Qly5EqpBwu6vwg 1 1    1   0 220.5kb 148.6kb
+    green open accounts                        L0htdVbaRHGeLMjtPAeayA 1 1 1000   0 787.4kb 395.7kb
+    green open mi_primer_indice                rY795iovS22th130zPCrPQ 1 1    1   0  11.9kb   5.9kb
+    green open .kibana_1                       sTiUZjzMTPuO-7ryvHozzw 1 1   23   6  20.8mb  10.4mb
+  ```
+
+2. Ahora vamos a realizar bucear un poco en los datos que acabamos de ingestar. 
+
+  Vamos a traernos el primer elemento del indice para comprobar que datos tiene.
+
+  ```bash
+    ➜  ~ curl -s -XGET "http://172.18.1.2:9200/accounts/_doc/1" |jq
+    {
+      "_index": "accounts",
+      "_type": "_doc",
+      "_id": "1",
+      "_version": 1,
+      "_seq_no": 0,
+      "_primary_term": 1,
+      "found": true,
+      "_source": {
+        "account_number": 1,
+        "balance": 39225,
+        "firstname": "Amber",
+        "lastname": "Duke",
+        "age": 32,
+        "gender": "M",
+        "address": "880 Holmes Lane",
+        "employer": "Pyrami",
+        "email": "amberduke@pyrami.com",
+        "city": "Brogan",
+        "state": "IL"
+      }
+    }
+  ```
+
+  Podemos modificar ese 1 por el número del documento queramos consultar. 7 en este caso
+
+  ```bash
+    ➜  ~ curl -s -XGET "http://172.18.1.2:9200/accounts/_doc/7" |jq
+    {
+      "_index": "accounts",
+      "_type": "_doc",
+      "_id": "7",
+      "_version": 1,
+      "_seq_no": 201,
+      "_primary_term": 1,
+      "found": true,
+      "_source": {
+        "account_number": 7,
+        "balance": 39121,
+        "firstname": "Levy",
+        "lastname": "Richard",
+        "age": 22,
+        "gender": "M",
+        "address": "820 Logan Street",
+        "employer": "Teraprene",
+        "email": "levyrichard@teraprene.com",
+        "city": "Shrewsbury",
+        "state": "MO"
+      }
+    }
+  ```
+
+3. Consultamos el mapping que se ha generado en el indice que acabamos de ingestar
+
+  De esta forma podemos saber que tipo de dato ha asignado elasticsearch a cada field.
+
+  ```bash
+    ➜  ~ curl -s -H 'Content-Type: application/json' -XGET "http://172.18.1.2:9200/accounts/_mapping" |jq
+    {
+      "accounts": {
+        "mappings": {
+          "properties": {
+            "account_number": {
+              "type": "long"
+            },
+            "address": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "age": {
+              "type": "long"
+            },
+            "balance": {
+              "type": "long"
+            },
+            "city": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "email": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "employer": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "firstname": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "gender": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "lastname": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "state": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ```
+4. Vamos a realizar una busqueda por un término en concreto.
+
+  Buscamos todas las personas de 32 años. Para ello queremos filtrar por el field `age`
+
+  ```bash
+    ➜  ~ curl -s -H 'Content-Type: application/json' -XGET "http://172.18.1.2:9200/accounts/_search" -d'{"query": { "term": { "age": 32 } }}' |jq
+    {
+      "took": 2,
+      "timed_out": false,
+      "_shards": {
+        "total": 1,
+        "successful": 1,
+        "skipped": 0,
+        "failed": 0
+      },
+      "hits": {
+        "total": {
+          "value": 52,
+          "relation": "eq"
+        },
+        "max_score": 1,
+        "hits": [
+          {
+            "_index": "accounts",
+            "_type": "_doc",
+            "_id": "1",
+            "_score": 1,
+            "_source": {
+              "account_number": 1,
+              "balance": 39225,
+              "firstname": "Amber",
+              "lastname": "Duke",
+              "age": 32,
+              "gender": "M",
+              "address": "880 Holmes Lane",
+              "employer": "Pyrami",
+              "email": "amberduke@pyrami.com",
+              "city": "Brogan",
+              "state": "IL"
+            }
+          },
+	  (...)
+  ```
+
+5. Ahora vamos a realizar un borrado de datos solo de los documentos que cumplan con los terminos de la búsqueda.
+
+  Para ello utilizaremos `delete_by_query` y borraremos todos los documento en los que age=32
+
+  ```bash
+    ➜  ~ curl -s -H 'Content-Type: application/json' -XPOST "http://172.18.1.2:9200/accounts/_delete_by_query" -d'{"query": { "term": { "age": 32 } }}' |jq
+    {
+      "took": 56,
+      "timed_out": false,
+      "total": 52,
+      "deleted": 52,
+      "batches": 1,
+      "version_conflicts": 0,
+      "noops": 0,
+      "retries": {
+        "bulk": 0,
+        "search": 0
+      },
+      "throttled_millis": 0,
+      "requests_per_second": -1,
+      "throttled_until_millis": 0,
+      "failures": []
+    }
+  ```
+
+  Vemos que ha borrado 56 elementos. Realizamos la busqueda anterior para ver si nos devuelve resultados.
+
+  ```bash
+    ➜  ~ curl -s -H 'Content-Type: application/json' -XGET "http://172.18.1.2:9200/accounts/_search" -d'{"query": { "term": { "age": 32 } }}' |jq
+    {
+      "took": 1,
+      "timed_out": false,
+      "_shards": {
+        "total": 1,
+        "successful": 1,
+        "skipped": 0,
+        "failed": 0
+      },
+      "hits": {
+        "total": {
+          "value": 0,
+          "relation": "eq"
+        },
+        "max_score": null,
+        "hits": []
+      }
+    }
+  ```
+
+  Comprobamos que ya no existen documento en los que age=32
