@@ -1,0 +1,1 @@
+/home/afortes/Documentos/notas/curso_es_ayscom.md
