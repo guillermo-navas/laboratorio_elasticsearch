@@ -55,7 +55,7 @@ Para otras distribuciones consultar el enlance anterior.
 
   </details>
 
-##### Creando la primera pipelines. Parte 2
+##### Creando la primera pipeline. Parte 2
 
 En esta segunda parte vamos a crear nuestra primera pipeline logstash.
 
@@ -224,4 +224,345 @@ Partiendo de la pipeline que acabamos de crear añadir:
            "message" => "Hola mundo 95.121.15.62 2011-04-19T03:44:01.103Z"
     }
   ```
+  </details>
+
+
+### Laboratorio 2 - Trabajando con inputs, filters y outputs
+
+#### Requisitos
+
+  * Logstash
+
+#### Objetivos
+
+  * Conocer y trabajar con el input file de logstash.
+  * Saber como procesar ficheros de texto vía logstash.
+  * Aplicar patrones grok a ficheros de aplicación reales.
+  * Configurar filter date.
+  * Configurar filter geoip.
+  * Aprender a procesar useragent
+
+#### Preparación de set de datos
+
+1. Lo primero que realizarmos es descargarnos los logs de ejemplso apache que tendremos que procesar
+
+  ```bash
+    wget https://raw.githubusercontent.com/elastic/examples/master/Common%20Data%20Formats/apache_logs/apache_logs --output-document apache.logs
+  ```
+
+#### Ejercicios
+##### Ejercicio:1 Procesando logs de apache.
+
+El objetivo de este ejercicio es procesar el set de datos de ejemplo, logs de apache previamente descargados, con logstash que separemos cada campo del log el fields distintos.
+
+Una vez tengamos cada traza de logs debidamente categorizada debemos setear el timestamp de cada traza de log como @timestamp para que el tiempo se categorice correctamente.
+
+Por otro lado debemos geolocalizar la ip que viene en cada traza del log.
+
+Debemos parsear el user agent que viene en los logs de forma que podamos analizar sobre que navegador se ha ejecutado la petición.
+
+Por último debemos ejecutar la pipelines y que se muestren todos los resultados por stdout.
+
+  <details><summary>Solución</summary>
+
+  El fichero de configuración de la pipeline `apache_workshow.conf`:
+
+  ```bash
+    input {
+      file {
+        path => ["/home/afortes/Documentos/laboratorio_elasticsearch/apache.logs"]
+        start_position => "beginning"
+        mode => "read"
+        type => "apache_access"
+        }
+    }
+    filter {
+      grok {
+        match => {
+          "message" => '%{IPORHOST:clientip} %{USER:ident} %{USER:auth} \[%{HTTPDATE:timestamp}\] "%{WORD:verb} %{DATA:request} HTTP/%{NUMBER:httpversion}" %{NUMBER:response:int} (?:-|%{NUMBER:bytes:int}) %{QS:referrer} %{QS:agent}'
+        }
+      }
+    
+      date {
+        match => [ "timestamp", "dd/MMM/YYYY:HH:mm:ss Z" ]
+        locale => en
+      }
+    
+      geoip {
+        source => "clientip"
+      }
+    
+      useragent {
+        source => "agent"
+        target => "useragent"
+      }
+    }
+    output {
+      stdout { codec => rubydebug }
+    }
+  ```
+
+  Ejecución
+
+  ```bash
+    ➜  laboratorio_elasticsearch git:(master) ✗ sudo logstash -f apache_workshow.conf
+    {
+               "path" => "/home/afortes/Documentos/laboratorio_elasticsearch/apache.logs",
+              "bytes" => 1015,
+           "@version" => "1",
+              "agent" => "\"Mozilla/5.0 (iPhone; CPU iPhone OS 7_0_4 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11B554a Safari/9537.53\"",
+           "response" => 200,
+               "host" => "blackbox",
+            "message" => "166.147.88.15 - - [17/May/2015:15:05:44 +0000] \"GET /reset.css HTTP/1.1\" 200 1015 \"http://www.semicomplete.com/\" \"Mozilla/5.0 (iPhone; CPU iPhone OS 7_0_4 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11B554a Safari/9537.53\"",
+            "request" => "/reset.css",
+              "geoip" => {
+                        "ip" => "166.147.88.15",
+                  "latitude" => 37.751,
+                  "timezone" => "America/Chicago",
+             "country_code3" => "US",
+                 "longitude" => -97.822,
+            "continent_code" => "NA",
+                  "location" => {
+                "lat" => 37.751,
+                "lon" => -97.822
+            },
+              "country_name" => "United States",
+             "country_code2" => "US"
+        },
+          "timestamp" => "17/May/2015:15:05:44 +0000",
+           "referrer" => "\"http://www.semicomplete.com/\"",
+              "ident" => "-",
+               "type" => "apache_access",
+         "@timestamp" => 2015-05-17T15:05:44.000Z,
+               "auth" => "-",
+               "verb" => "GET",
+        "httpversion" => "1.1",
+           "clientip" => "166.147.88.15",
+          "useragent" => {
+                "name" => "Mobile Safari",
+            "os_minor" => "0",
+               "major" => "7",
+              "device" => "iPhone",
+            "os_major" => "7",
+                  "os" => "iOS",
+               "minor" => "0",
+             "os_name" => "iOS",
+               "build" => ""
+        }
+    }
+    {
+               "path" => "/home/afortes/Documentos/laboratorio_elasticsearch/apache.logs",
+              "bytes" => 4877,
+           "@version" => "1",
+              "agent" => "\"Mozilla/5.0 (iPhone; CPU iPhone OS 7_0_4 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11B554a Safari/9537.53\"",
+           "response" => 200,
+               "host" => "blackbox",
+            "message" => "166.147.88.15 - - [17/May/2015:15:05:58 +0000] \"GET /style2.css HTTP/1.1\" 200 4877 \"http://www.semicomplete.com/\" \"Mozilla/5.0 (iPhone; CPU iPhone OS 7_0_4 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11B554a Safari/9537.53\"",
+            "request" => "/style2.css",
+              "geoip" => {
+                        "ip" => "166.147.88.15",
+                  "latitude" => 37.751,
+                  "timezone" => "America/Chicago",
+             "country_code3" => "US",
+                 "longitude" => -97.822,
+            "continent_code" => "NA",
+                  "location" => {
+                "lat" => 37.751,
+                "lon" => -97.822
+            },
+              "country_name" => "United States",
+             "country_code2" => "US"
+        },
+          "timestamp" => "17/May/2015:15:05:58 +0000",
+           "referrer" => "\"http://www.semicomplete.com/\"",
+              "ident" => "-",
+               "type" => "apache_access",
+         "@timestamp" => 2015-05-17T15:05:58.000Z,
+               "auth" => "-",
+               "verb" => "GET",
+        "httpversion" => "1.1",
+           "clientip" => "166.147.88.15",
+          "useragent" => {
+                "name" => "Mobile Safari",
+            "os_minor" => "0",
+               "major" => "7",
+              "device" => "iPhone",
+            "os_major" => "7",
+                  "os" => "iOS",
+               "minor" => "0",
+             "os_name" => "iOS",
+               "build" => ""
+        }
+    }
+    (...)
+  ```
+  </details>
+
+
+##### Ejercicio:2 Procesando logs de apache.
+
+
+Para este ejercicio partiremos de la pipeline anteriormente creada y tendremos que ingestar los documentos en elasticsearch en un indice que llamaremos `apache`.
+
+* Debe crearse un índice apache por día, rotado dirario.
+
+* Cuando realicemos la ingesta debemos mantener la salida por pantalla que hemos creado en el ejercicio anterior en aras de poder debuggar los resultados.
+
+* Crearemos en kibana un index pattern para poder consultar el índice.
+
+* Consultaremos desde kibana -> pestaña de discovery la información que hemos ingestado.
+
+  <details><summary>Solución</summary>
+
+  El fichero de configuración de la pipeline `apache_workshow.conf`:
+
+  ```bash
+    input {
+      file {
+        path => ["/home/afortes/Documentos/laboratorio_elasticsearch/apache.logs"]
+        start_position => "beginning"
+        mode => "read"
+        type => "apache_access"
+        }
+    }
+    filter {
+      grok {
+        match => {
+          "message" => '%{IPORHOST:clientip} %{USER:ident} %{USER:auth} \[%{HTTPDATE:timestamp}\] "%{WORD:verb} %{DATA:request} HTTP/%{NUMBER:httpversion}" %{NUMBER:response:int} (?:-|%{NUMBER:bytes:int}) %{QS:referrer} %{QS:agent}'
+        }
+      }
+    
+      date {
+        match => [ "timestamp", "dd/MMM/YYYY:HH:mm:ss Z" ]
+        locale => en
+      }
+    
+      geoip {
+        source => "clientip"
+      }
+    
+      useragent {
+        source => "agent"
+        target => "useragent"
+      }
+    }
+    output {
+      stdout { codec => rubydebug }
+      elasticsearch {
+          hosts => ["172.18.1.2:9200","172.18.1.3:9200","172.18.1.4:9200"]
+          index => "apache-%{+YYYY.MM.dd}"
+      }
+    }
+  ```
+
+  Ejecución
+
+  ```bash
+    ➜  laboratorio_elasticsearch git:(master) ✗ sudo logstash -f apache_workshow.conf
+    {
+               "path" => "/home/afortes/Documentos/laboratorio_elasticsearch/apache.logs",
+              "bytes" => 1015,
+           "@version" => "1",
+              "agent" => "\"Mozilla/5.0 (iPhone; CPU iPhone OS 7_0_4 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11B554a Safari/9537.53\"",
+           "response" => 200,
+               "host" => "blackbox",
+            "message" => "166.147.88.15 - - [17/May/2015:15:05:44 +0000] \"GET /reset.css HTTP/1.1\" 200 1015 \"http://www.semicomplete.com/\" \"Mozilla/5.0 (iPhone; CPU iPhone OS 7_0_4 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11B554a Safari/9537.53\"",
+            "request" => "/reset.css",
+              "geoip" => {
+                        "ip" => "166.147.88.15",
+                  "latitude" => 37.751,
+                  "timezone" => "America/Chicago",
+             "country_code3" => "US",
+                 "longitude" => -97.822,
+            "continent_code" => "NA",
+                  "location" => {
+                "lat" => 37.751,
+                "lon" => -97.822
+            },
+              "country_name" => "United States",
+             "country_code2" => "US"
+        },
+          "timestamp" => "17/May/2015:15:05:44 +0000",
+           "referrer" => "\"http://www.semicomplete.com/\"",
+              "ident" => "-",
+               "type" => "apache_access",
+         "@timestamp" => 2015-05-17T15:05:44.000Z,
+               "auth" => "-",
+               "verb" => "GET",
+        "httpversion" => "1.1",
+           "clientip" => "166.147.88.15",
+          "useragent" => {
+                "name" => "Mobile Safari",
+            "os_minor" => "0",
+               "major" => "7",
+              "device" => "iPhone",
+            "os_major" => "7",
+                  "os" => "iOS",
+               "minor" => "0",
+             "os_name" => "iOS",
+               "build" => ""
+        }
+    }
+    {
+               "path" => "/home/afortes/Documentos/laboratorio_elasticsearch/apache.logs",
+              "bytes" => 4877,
+           "@version" => "1",
+              "agent" => "\"Mozilla/5.0 (iPhone; CPU iPhone OS 7_0_4 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11B554a Safari/9537.53\"",
+           "response" => 200,
+               "host" => "blackbox",
+            "message" => "166.147.88.15 - - [17/May/2015:15:05:58 +0000] \"GET /style2.css HTTP/1.1\" 200 4877 \"http://www.semicomplete.com/\" \"Mozilla/5.0 (iPhone; CPU iPhone OS 7_0_4 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11B554a Safari/9537.53\"",
+            "request" => "/style2.css",
+              "geoip" => {
+                        "ip" => "166.147.88.15",
+                  "latitude" => 37.751,
+                  "timezone" => "America/Chicago",
+             "country_code3" => "US",
+                 "longitude" => -97.822,
+            "continent_code" => "NA",
+                  "location" => {
+                "lat" => 37.751,
+                "lon" => -97.822
+            },
+              "country_name" => "United States",
+             "country_code2" => "US"
+        },
+          "timestamp" => "17/May/2015:15:05:58 +0000",
+           "referrer" => "\"http://www.semicomplete.com/\"",
+              "ident" => "-",
+               "type" => "apache_access",
+         "@timestamp" => 2015-05-17T15:05:58.000Z,
+               "auth" => "-",
+               "verb" => "GET",
+        "httpversion" => "1.1",
+           "clientip" => "166.147.88.15",
+          "useragent" => {
+                "name" => "Mobile Safari",
+            "os_minor" => "0",
+               "major" => "7",
+              "device" => "iPhone",
+            "os_major" => "7",
+                  "os" => "iOS",
+               "minor" => "0",
+             "os_name" => "iOS",
+               "build" => ""
+        }
+    }
+    (...)
+  ```
+
+  Vemos que se ha creado el indice apache con rotación diaría.
+
+  ```bash
+    ➜  laboratorio_elasticsearch git:(master) ✗ curl -s -XGET "http://172.18.1.2:9200/_cat/indices"
+    green open apache-2015.05.19               ovITiXTbTpuew7aMSvQFmA 1 1  272  0 637.7kb 319.1kb
+    green open apache-2015.05.18               oai7N97AQ2uOqlXB9EVWIA 1 1 2893  0   4.7mb   2.1mb
+    green open apache-2015.05.17               ctqqPtATSrKSSJ75Q2qxuQ 1 1 1632  0   3.2mb   1.6mb
+  ```
+  Creamos el index pattern en kibana
+
+  ![index pattern](img/laboratorio_logstash/index_pattern.png)
+
+  Consultamos la pestaña de discovery
+
+  ![discovery](img/laboratorio_logstash/discovery.png)
   </details>
