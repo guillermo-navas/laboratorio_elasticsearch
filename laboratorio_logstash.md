@@ -177,10 +177,13 @@ Partiendo de la pipeline que acabamos de crear añadir:
     }
     filter {
       grok {
-        match => {"message" => "%{IP:ip}"}
+        match => {"message" => "%{IP:ip} %{TIMESTAMP_ISO8601:Fecha}"}
       }
       geoip {
         source => "ip"
+      }
+      date {
+        match => ["Fecha", "ISO8601"]
       }
     }
     output {
