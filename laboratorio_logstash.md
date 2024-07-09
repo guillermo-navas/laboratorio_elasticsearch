@@ -509,96 +509,96 @@ Para este ejercicio partiremos de la pipeline anteriormente creada y tendremos q
 
   ```bash
     ➜  laboratorio_elasticsearch git:(master) ✗ /usr/share/logstash/bin/logstash -f "/etc/logstash/conf.d/lab_pipeline.yml
-    {
+      { 
                [INFO ] 2024-07-09 11:33:06.158 [Agent thread] agent - Pipelines running {:count=>1, :running_pipelines=>[:main], :non_running_pipelines=>[]}
-{
-                         "log" => {
-        "file" => {
-            "path" => "/home/datadope/Documentos/Lab_elastic/apache.logs"
-        }
-    },
-                 "http.method" => "GET",
-                   "timestamp" => "17/May/2015:10:05:24 +0000",
-                  "@timestamp" => 2015-05-17T10:05:24.000Z,
-                   "user.name" => "-",
-                        "host" => {
-        "name" => "datadope"
-    },
-                "http.version" => "1.1",
-                   "source.ip" => "83.149.9.216",
-                       "event" => {
-        "original" => "83.149.9.216 - - [17/May/2015:10:05:24 +0000] \"GET /presentations/logstash-monitorama-2013/images/frontend-response-codes.png HTTP/1.1\" 200 52878 \"http://semicomplete.com/presentations/logstash-monitorama-2013/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.77 Safari/537.36\""
-    },
-       "http.request.referrer" => "http://semicomplete.com/presentations/logstash-monitorama-2013/",
-                    "@version" => "1",
-        "http.response.status" => "200",
-                  "user.agent" => "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.77 Safari/537.36",
-                     "message" => "83.149.9.216 - - [17/May/2015:10:05:24 +0000] \"GET /presentations/logstash-monitorama-2013/images/frontend-response-codes.png HTTP/1.1\" 200 52878 \"http://semicomplete.com/presentations/logstash-monitorama-2013/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.77 Safari/537.36\"",
-              "client_machine" => "-",
-                "url.original" => "/presentations/logstash-monitorama-2013/images/frontend-response-codes.png",
-    "http.response.body_bytes" => "52878",
-                   "source_ip" => {
-        "geo" => {
-                 "postal_code" => "102090",
-                    "location" => {
-                "lon" => 37.6171,
-                "lat" => 55.7483
-            },
-              "continent_code" => "EU",
-                    "timezone" => "Europe/Moscow",
-                "country_name" => "Russia",
-             "region_iso_code" => "RU-MOW",
-                 "region_name" => "Moscow",
-                   "city_name" => "Moscow",
-            "country_iso_code" => "RU"
-        },
-         "ip" => "83.149.9.216"
-    }
-}
-{
-                         "log" => {
-        "file" => {
-            "path" => "/home/datadope/Documentos/Lab_elastic/apache.logs"
-        }
-    },
-                 "http.method" => "GET",
-                   "timestamp" => "17/May/2015:10:05:14 +0000",
-                  "@timestamp" => 2015-05-17T10:05:14.000Z,
-                   "user.name" => "-",
-                        "host" => {
-        "name" => "datadope"
-    },
-                "http.version" => "1.1",
-                   "source.ip" => "93.114.45.13",
-                       "event" => {
-        "original" => "93.114.45.13 - - [17/May/2015:10:05:14 +0000] \"GET /articles/dynamic-dns-with-dhcp/ HTTP/1.1\" 200 18848 \"http://www.google.ro/url?sa=t&rct=j&q=&esrc=s&source=web&cd=2&ved=0CCwQFjAB&url=http%3A%2F%2Fwww.semicomplete.com%2Farticles%2Fdynamic-dns-with-dhcp%2F&ei=W88AU4n9HOq60QXbv4GwBg&usg=AFQjCNEF1X4Rs52UYQyLiySTQxa97ozM4g&bvm=bv.61535280,d.d2k\" \"Mozilla/5.0 (X11; Linux x86_64; rv:25.0) Gecko/20100101 Firefox/25.0\""
-    },
-       "http.request.referrer" => "http://www.google.ro/url?sa=t&rct=j&q=&esrc=s&source=web&cd=2&ved=0CCwQFjAB&url=http%3A%2F%2Fwww.semicomplete.com%2Farticles%2Fdynamic-dns-with-dhcp%2F&ei=W88AU4n9HOq60QXbv4GwBg&usg=AFQjCNEF1X4Rs52UYQyLiySTQxa97ozM4g&bvm=bv.61535280,d.d2k",
-                    "@version" => "1",
-        "http.response.status" => "200",
-                  "user.agent" => "Mozilla/5.0 (X11; Linux x86_64; rv:25.0) Gecko/20100101 Firefox/25.0",
-                     "message" => "93.114.45.13 - - [17/May/2015:10:05:14 +0000] \"GET /articles/dynamic-dns-with-dhcp/ HTTP/1.1\" 200 18848 \"http://www.google.ro/url?sa=t&rct=j&q=&esrc=s&source=web&cd=2&ved=0CCwQFjAB&url=http%3A%2F%2Fwww.semicomplete.com%2Farticles%2Fdynamic-dns-with-dhcp%2F&ei=W88AU4n9HOq60QXbv4GwBg&usg=AFQjCNEF1X4Rs52UYQyLiySTQxa97ozM4g&bvm=bv.61535280,d.d2k\" \"Mozilla/5.0 (X11; Linux x86_64; rv:25.0) Gecko/20100101 Firefox/25.0\"",
-              "client_machine" => "-",
-                "url.original" => "/articles/dynamic-dns-with-dhcp/",
-    "http.response.body_bytes" => "18848",
-                   "source_ip" => {
-        "geo" => {
-                 "postal_code" => "052041",
-                    "location" => {
-                "lon" => 26.1006,
-                "lat" => 44.4291
-            },
-              "continent_code" => "EU",
-                    "timezone" => "Europe/Bucharest",
-                "country_name" => "Romania",
-             "region_iso_code" => "RO-B",
-                 "region_name" => "București",
-                   "city_name" => "Bucharest",
-            "country_iso_code" => "RO"
-        },
-         "ip" => "93.114.45.13"
-    }
-}
+              {
+                                      "log" => {
+                      "file" => {
+                          "path" => "/home/datadope/Documentos/Lab_elastic/apache.logs"
+                      }
+                  },
+                              "http.method" => "GET",
+                                "timestamp" => "17/May/2015:10:05:24 +0000",
+                                "@timestamp" => 2015-05-17T10:05:24.000Z,
+                                "user.name" => "-",
+                                      "host" => {
+                      "name" => "datadope"
+                  },
+                              "http.version" => "1.1",
+                                "source.ip" => "83.149.9.216",
+                                    "event" => {
+                      "original" => "83.149.9.216 - - [17/May/2015:10:05:24 +0000] \"GET /presentations/logstash-monitorama-2013/images/frontend-response-codes.png HTTP/1.1\" 200 52878 \"http://semicomplete.com/presentations/logstash-monitorama-2013/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.77 Safari/537.36\""
+                  },
+                    "http.request.referrer" => "http://semicomplete.com/presentations/logstash-monitorama-2013/",
+                                  "@version" => "1",
+                      "http.response.status" => "200",
+                                "user.agent" => "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.77 Safari/537.36",
+                                  "message" => "83.149.9.216 - - [17/May/2015:10:05:24 +0000] \"GET /presentations/logstash-monitorama-2013/images/frontend-response-codes.png HTTP/1.1\" 200 52878 \"http://semicomplete.com/presentations/logstash-monitorama-2013/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.77 Safari/537.36\"",
+                            "client_machine" => "-",
+                              "url.original" => "/presentations/logstash-monitorama-2013/images/frontend-response-codes.png",
+                  "http.response.body_bytes" => "52878",
+                                "source_ip" => {
+                      "geo" => {
+                              "postal_code" => "102090",
+                                  "location" => {
+                              "lon" => 37.6171,
+                              "lat" => 55.7483
+                          },
+                            "continent_code" => "EU",
+                                  "timezone" => "Europe/Moscow",
+                              "country_name" => "Russia",
+                          "region_iso_code" => "RU-MOW",
+                              "region_name" => "Moscow",
+                                "city_name" => "Moscow",
+                          "country_iso_code" => "RU"
+                      },
+                      "ip" => "83.149.9.216"
+                  }
+              }
+              {
+                                      "log" => {
+                      "file" => {
+                          "path" => "/home/datadope/Documentos/Lab_elastic/apache.logs"
+                      }
+                  },
+                              "http.method" => "GET",
+                                "timestamp" => "17/May/2015:10:05:14 +0000",
+                                "@timestamp" => 2015-05-17T10:05:14.000Z,
+                                "user.name" => "-",
+                                      "host" => {
+                      "name" => "datadope"
+                  },
+                              "http.version" => "1.1",
+                                "source.ip" => "93.114.45.13",
+                                    "event" => {
+                      "original" => "93.114.45.13 - - [17/May/2015:10:05:14 +0000] \"GET /articles/dynamic-dns-with-dhcp/ HTTP/1.1\" 200 18848 \"http://www.google.ro/url?sa=t&rct=j&q=&esrc=s&source=web&cd=2&ved=0CCwQFjAB&url=http%3A%2F%2Fwww.semicomplete.com%2Farticles%2Fdynamic-dns-with-dhcp%2F&ei=W88AU4n9HOq60QXbv4GwBg&usg=AFQjCNEF1X4Rs52UYQyLiySTQxa97ozM4g&bvm=bv.61535280,d.d2k\" \"Mozilla/5.0 (X11; Linux x86_64; rv:25.0) Gecko/20100101 Firefox/25.0\""
+                  },
+                    "http.request.referrer" => "http://www.google.ro/url?sa=t&rct=j&q=&esrc=s&source=web&cd=2&ved=0CCwQFjAB&url=http%3A%2F%2Fwww.semicomplete.com%2Farticles%2Fdynamic-dns-with-dhcp%2F&ei=W88AU4n9HOq60QXbv4GwBg&usg=AFQjCNEF1X4Rs52UYQyLiySTQxa97ozM4g&bvm=bv.61535280,d.d2k",
+                                  "@version" => "1",
+                      "http.response.status" => "200",
+                                "user.agent" => "Mozilla/5.0 (X11; Linux x86_64; rv:25.0) Gecko/20100101 Firefox/25.0",
+                                  "message" => "93.114.45.13 - - [17/May/2015:10:05:14 +0000] \"GET /articles/dynamic-dns-with-dhcp/ HTTP/1.1\" 200 18848 \"http://www.google.ro/url?sa=t&rct=j&q=&esrc=s&source=web&cd=2&ved=0CCwQFjAB&url=http%3A%2F%2Fwww.semicomplete.com%2Farticles%2Fdynamic-dns-with-dhcp%2F&ei=W88AU4n9HOq60QXbv4GwBg&usg=AFQjCNEF1X4Rs52UYQyLiySTQxa97ozM4g&bvm=bv.61535280,d.d2k\" \"Mozilla/5.0 (X11; Linux x86_64; rv:25.0) Gecko/20100101 Firefox/25.0\"",
+                            "client_machine" => "-",
+                              "url.original" => "/articles/dynamic-dns-with-dhcp/",
+                  "http.response.body_bytes" => "18848",
+                                "source_ip" => {
+                      "geo" => {
+                              "postal_code" => "052041",
+                                  "location" => {
+                              "lon" => 26.1006,
+                              "lat" => 44.4291
+                          },
+                            "continent_code" => "EU",
+                                  "timezone" => "Europe/Bucharest",
+                              "country_name" => "Romania",
+                          "region_iso_code" => "RO-B",
+                              "region_name" => "București",
+                                "city_name" => "Bucharest",
+                          "country_iso_code" => "RO"
+                      },
+                      "ip" => "93.114.45.13"
+                  }
+              }
     (...)
   ```
 
