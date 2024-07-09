@@ -5,7 +5,7 @@
 #### Requisitos
 
   * Elasticsearch
-  * Kibana
+  * Kibana 
 
 #### Objetivos
 
