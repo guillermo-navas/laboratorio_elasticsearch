@@ -18,7 +18,7 @@ Para poder hacer uso de watcher es necesario activar la licencia gold de elastic
 
 *Activando la versión gold trial de elasticsearch*
 
-1. Desde kibana, en la pestaña stack management -> Licence Management -> Start Trial
+1. Desde kibana, en la pestaña stack manag ement -> Licence Management -> Start Trial
 
   ![Activar licencia](img/laboratorio_watcher/activar_licencia.png)
 
