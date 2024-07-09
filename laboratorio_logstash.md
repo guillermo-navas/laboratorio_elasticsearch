@@ -304,7 +304,7 @@ Por último debemos ejecutar la pipelines y que se muestren todos los resultados
 
   <details><summary>Solución</summary>
 
-  El fichero de configuración de la pipeline `apache_workshow.conf`:
+  El fichero de configuración de la pipeline `lab_pipeline.conf`:
 
   ```bash
     input {
@@ -464,52 +464,46 @@ Para este ejercicio partiremos de la pipeline anteriormente creada y tendremos q
 
   <details><summary>Solución</summary>
 
-  El fichero de configuración de la pipeline `apache_workshow.conf`:
+  El fichero de configuración de la pipeline `lab_pipeline.conf`:
 
   ```bash
     input {
-  file {
+    file {
 
     path => ["/home/datadope/Documentos/Lab_elastic/apache.logs"]
 
     start_position => "beginning"
     mode => "read"
-  }
-}
+    }
+    }
+    filter 
+    {
+      grok{
 
-filter 
-{
-  grok{
+      match => {
+    "message" => '%{IP:source.ip} %{DATA:client_machine} %{DATA:user.name} \[%{HTTPDATE:timestamp}\] "%{WORD:http.method} %{NOTSPACE:url.original} HTTP/%{DATA:http.version}" %{NUMBER:http.response.status} (?:-|%{NUMBER:http.response.body_bytes}) "%{DATA:http.request.referrer}" "%{DATA:user.agent}"'
 
-  match => {
-"message" => '%{IP:source.ip} %{DATA:client_machine} %{DATA:user.name} \[%{HTTPDATE:timestamp}\] "%{WORD:http.method} %{NOTSPACE:url.original} HTTP/%{DATA:http.version}" %{NUMBER:http.response.status} (?:-|%{NUMBER:http.response.body_bytes}) "%{DATA:http.request.referrer}" "%{DATA:user.agent}"'
+    }
 
- }
+      }
+      geoip {
+      source => "source.ip"
+      target => "source_ip"
+      }
 
-  }
-  geoip {
-   source => "source.ip"
-   target => "source_ip"
-  }
+    date{
 
-date{
-
-match => [ timestamp, "dd/MMM/yyyy:HH:mm:ss Z"]
-
-}
-
-
-}
-
-
-output{
-  stdout{ codec => rubydebug}
-  elasticsearch{
-    hosts => ["172.18.1.3:9200", "172.18.1.2:9200", "172.18.1.4:9200"]
-    index => "apache-%{+YYYY-MM-dd}"
-  }
-}
-  ```
+    match => [ timestamp, "dd/MMM/yyyy:HH:mm:ss Z"]
+    }
+    }
+    output{
+      stdout{ codec => rubydebug}
+      elasticsearch{
+        hosts => ["172.18.1.3:9200", "172.18.1.2:9200", "172.18.1.4:9200"]
+        index => "apache-%{+YYYY-MM-dd}"
+      }
+    }
+      ```
 
   Ejecución
 
