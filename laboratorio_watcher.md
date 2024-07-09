@@ -31,9 +31,13 @@ Para poder hacer uso de watcher es necesario activar la licencia gold de elastic
   Si no hemos bindeado un volumen para la configuración de docker accedemos al contenedor y realizamos el cambio
 
   Repetiremos este procedimiento con cada nodo de elasticsearch
+  Se ejecutará primero como root al acceder al container para instalar algún editor de texto, en este caso nano
+
 
   ```bash
-    docker exec -it es01 bash
+    docker exec -it -u 0 elasticsearch1 bash
+    apt-get update
+    apt-get install nano
   ```
 
   Una vez dentro añadir la configuración al fichero `config/elasticsearch.yml`
@@ -50,7 +54,11 @@ Para poder hacer uso de watcher es necesario activar la licencia gold de elastic
             user: <username>
   ```
 
-  Por último añadir la password de la cuenta correo al keystore
+  Por último añadir la password de la cuenta correo al keystore, accediendo esta vez como un usuario no root
+
+  ```bash
+    docker exec -it elasticsearch1 bash
+  ```
 
   ```bash
     bin/elasticsearch-keystore add xpack.notification.email.account.gmail_account.smtp.secure_password
@@ -59,11 +67,11 @@ Para poder hacer uso de watcher es necesario activar la licencia gold de elastic
   Reiniciar el nodo para aplicar la configuración
 
   ```bash
-    docker restart es01
+    docker restart elasticsearch1
   ```
-2. Para permitir el envio de correos vía gmail es necesario permitir el uso de la cuenta de aplicaciones poco seguras.
+2. Para permitir el envio de correos vía gmail es necesario que la cuenta de Google genere una password específica para Elastic.
 
-  URL: https://docs.rocketbot.co/?p=1567
+  URL: https://ispgestion.com/configurar-gmail-2022-aplicaciones-menos-seguras/
 
 
 ##### Ejercicio - Creando el primer watcher
@@ -234,7 +242,7 @@ El watcher tendrá las siguientes características:
       "actions" : {
         "send_email" : {
           "email" : {
-            "to" : "alexandrofortessilva@gmail.com",
+            "to" : "guillermo.navas@datadope.io",
             "subject" : "El estado del cluster NO es green",
             "body" : "El estado del cluster NO es green"
           }
@@ -246,7 +254,7 @@ El watcher tendrá las siguientes características:
   Updateamos el watcher añadiendo el action email usando el json anterior
 
   ```bash
-    ➜  laboratorio_elasticsearch git:(master) ✗ curl -s -H 'Content-Type: application/json' -XPUT "http://172.18.1.2:9200/_watcher/watch/cluster_health_watch" -d'{"trigger":{"schedule":{"interval":"10s"}},"input":{"http":{"request":{"host":"localhost","port":9200,"path":"/_cluster/health"}}},"condition":{"compare":{"ctx.payload.status":{"not_eq":"green"}}},"actions":{"send_email":{"email":{"to":"alexandrofortessilva@gmail.com","subject":"El estado del cluster NO es green","body":"El estado del cluster NO es green"}}}}'
+    ➜  laboratorio_elasticsearch git:(master) ✗ curl -s -H 'Content-Type: application/json' -XPUT "http://172.18.1.2:9200/_watcher/watch/cluster_health_watch" -d'{"trigger":{"schedule":{"interval":"10s"}},"input":{"http":{"request":{"host":"localhost","port":9200,"path":"/_cluster/health"}}},"condition":{"compare":{"ctx.payload.status":{"not_eq":"green"}}},"actions":{"send_email":{"email":{"to":"guillermo.navas@datadope.io","subject":"El estado del cluster NO es green","body":"El estado del cluster NO es green"}}}}'
   ```
   </details>
 
