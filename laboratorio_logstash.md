@@ -50,7 +50,7 @@ Para otras distribuciones consultar el enlance anterior.
   <details><summary>Solución</summary>
 
   ```bash
-    logstash --version
+    /usr/share/logstash/bin/logstash --version
   ```
 
   </details>
@@ -79,77 +79,86 @@ Para esta primera parte queremos crear una pipelines con las siguientes premisas
 
   ```bash
     input {
-      stdin {}
-    }
-    filter {
-      grok {
-        match => {"message" => "%{IP:ip}"}
-      }
-      geoip {
-        source => "ip"
-      }
-    }
-    output {
-      stdout {
-        codec => rubydebug
-      }
-    }
+  stdin {}
+}
+
+filter 
+{
+  grok{
+
+  match => {"message" => "%{GREEDYDATA}%{SPACE}%{IP:ip2}"}
+  }
+
+  geoip {
+   source => "ip2"
+   target => "source_ip"
+  }
+
+}
+
+
+output{
+  stdout{ codec => rubydebug}
+}
+
   ```
+
+ * **A partir de la versión 8.5 se debe introducir un source y target en geoip, de lo contrario dará error**
 
   Para realizar la ejecución:
 
   ```bash
-    ➜  laboratorio_elasticsearch git:(master) ✗ sudo logstash -f pipeline1.conf
-    [sudo] contraseña para afortes:
-    OpenJDK 64-Bit Server VM warning: Option UseConcMarkSweepGC was deprecated in version 9.0 and will likely be removed in a future release.
-    WARNING: An illegal reflective access operation has occurred
-    WARNING: Illegal reflective access by com.headius.backport9.modules.Modules (file:/usr/share/logstash/logstash-core/lib/jars/jruby-complete-9.2.8.0.jar) to field java.io.FileDescriptor.fd
-    WARNING: Please consider reporting this to the maintainers of com.headius.backport9.modules.Modules
-    WARNING: Use --illegal-access=warn to enable warnings of further illegal reflective access operations
-    WARNING: All illegal access operations will be denied in a future release
-    Thread.exclusive is deprecated, use Thread::Mutex
-    WARNING: Could not find logstash.yml which is typically located in $LS_HOME/config or /etc/logstash. You can specify the path using --path.settings. Continuing using the defaults
-    Could not find log4j2 configuration at path /usr/share/logstash/config/log4j2.properties. Using default config which logs errors to the console
-    [WARN ] 2021-02-17 07:13:16.688 [LogStash::Runner] multilocal - Ignoring the 'pipelines.yml' file because modules or command line options are specified
-    [INFO ] 2021-02-17 07:13:16.703 [LogStash::Runner] runner - Starting Logstash {"logstash.version"=>"7.4.2"}
-    [INFO ] 2021-02-17 07:13:18.156 [Converge PipelineAction::Create<main>] Reflections - Reflections took 38 ms to scan 1 urls, producing 20 keys and 40 values
-    [INFO ] 2021-02-17 07:13:18.761 [[main]-pipeline-manager] geoip - Using geoip database {:path=>"/usr/share/logstash/vendor/bundle/jruby/2.5.0/gems/logstash-filter-geoip-6.0.3-java/vendor/GeoLite2-City.mmdb"}
-    [WARN ] 2021-02-17 07:13:18.933 [[main]-pipeline-manager] LazyDelegatingGauge - A gauge metric of an unknown type (org.jruby.RubyArray) has been create for key: cluster_uuids. This may result in invalid serialization.  It is recommended to log an issue to the responsible developer/development team.
-    [INFO ] 2021-02-17 07:13:18.936 [[main]-pipeline-manager] javapipeline - Starting pipeline {:pipeline_id=>"main", "pipeline.workers"=>4, "pipeline.batch.size"=>125, "pipeline.batch.delay"=>50, "pipeline.max_inflight"=>500, :thread=>"#<Thread:0x4ec90181 run>"}
-    [INFO ] 2021-02-17 07:13:19.010 [[main]-pipeline-manager] javapipeline - Pipeline started {"pipeline.id"=>"main"}
-    The stdin plugin is now waiting for input:
-    [INFO ] 2021-02-17 07:13:19.089 [Agent thread] agent - Pipelines running {:count=>1, :running_pipelines=>[:main], :non_running_pipelines=>[]}
-    [INFO ] 2021-02-17 07:13:19.363 [Api Webserver] agent - Successfully started Logstash API endpoint {:port=>9600}
-    HOLA 95.121.15.62
-    /usr/share/logstash/vendor/bundle/jruby/2.5.0/gems/awesome_print-1.7.0/lib/awesome_print/formatters/base_formatter.rb:31: warning: constant ::Fixnum is deprecated
-    {
-              "host" => "blackbox",
-                "ip" => "95.121.15.62",
-             "geoip" => {
-             "country_code3" => "ES",
-             "country_code2" => "ES",
-                  "location" => {
-                "lon" => -3.7016,
-                "lat" => 40.4143
+    ➜  laboratorio_elasticsearch git:(master) ✗ s/usr/share/logstash/bin/logstash -f "/etc/logstash/conf.d/lab_pipeline.yml" 
+Using bundled JDK: /usr/share/logstash/jdk
+WARNING: Could not find logstash.yml which is typically located in $LS_HOME/config or /etc/logstash. You can specify the path using --path.settings. Continuing using the defaults
+Could not find log4j2 configuration at path /usr/share/logstash/config/log4j2.properties. Using default config which logs errors to the console
+[WARN ] 2024-07-09 10:43:06.261 [main] runner - NOTICE: Running Logstash as superuser is not recommended and won't be allowed in the future. Set 'allow_superuser' to 'false' to avoid startup errors in future releases.
+[INFO ] 2024-07-09 10:43:06.268 [main] runner - Starting Logstash {"logstash.version"=>"8.14.1", "jruby.version"=>"jruby 9.4.7.0 (3.1.4) 2024-04-29 597ff08ac1 OpenJDK 64-Bit Server VM 17.0.11+9 on 17.0.11+9 +indy +jit [x86_64-linux]"}
+[INFO ] 2024-07-09 10:43:06.269 [main] runner - JVM bootstrap flags: [-Xms1g, -Xmx1g, -Djava.awt.headless=true, -Dfile.encoding=UTF-8, -Djruby.compile.invokedynamic=true, -XX:+HeapDumpOnOutOfMemoryError, -Djava.security.egd=file:/dev/urandom, -Dlog4j2.isThreadContextMapInheritable=true, -Dlogstash.jackson.stream-read-constraints.max-string-length=200000000, -Dlogstash.jackson.stream-read-constraints.max-number-length=10000, -Djruby.regexp.interruptible=true, -Djdk.io.File.enableADS=true, --add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED, --add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED, --add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED, --add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED, --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED, --add-opens=java.base/java.security=ALL-UNNAMED, --add-opens=java.base/java.io=ALL-UNNAMED, --add-opens=java.base/java.nio.channels=ALL-UNNAMED, --add-opens=java.base/sun.nio.ch=ALL-UNNAMED, --add-opens=java.management/sun.management=ALL-UNNAMED, -Dio.netty.allocator.maxOrder=11]
+[INFO ] 2024-07-09 10:43:06.271 [main] runner - Jackson default value override `logstash.jackson.stream-read-constraints.max-string-length` configured to `200000000`
+[INFO ] 2024-07-09 10:43:06.271 [main] runner - Jackson default value override `logstash.jackson.stream-read-constraints.max-number-length` configured to `10000`
+[WARN ] 2024-07-09 10:43:06.402 [LogStash::Runner] multilocal - Ignoring the 'pipelines.yml' file because modules or command line options are specified
+[INFO ] 2024-07-09 10:43:06.925 [Api Webserver] agent - Successfully started Logstash API endpoint {:port=>9600, :ssl_enabled=>false}
+[INFO ] 2024-07-09 10:43:07.171 [Converge PipelineAction::Create<main>] Reflections - Reflections took 70 ms to scan 1 urls, producing 132 keys and 468 values
+[INFO ] 2024-07-09 10:43:07.459 [Converge PipelineAction::Create<main>] javapipeline - Pipeline `main` is configured with `pipeline.ecs_compatibility: v8` setting. All plugins in this pipeline will default to `ecs_compatibility => v8` unless explicitly configured otherwise.
+[WARN ] 2024-07-09 10:43:07.481 [[main]-pipeline-manager] grok - ECS v8 support is a preview of the unreleased ECS v8, and uses the v1 patterns. When Version 8 of the Elastic Common Schema becomes available, this plugin will need to be updated
+[INFO ] 2024-07-09 10:43:08.654 [[main]-pipeline-manager] databasemanager - By not manually configuring a database path with `database =>`, you accepted and agreed MaxMind EULA. For more details please visit https://www.maxmind.com/en/geolite2/eula
+[INFO ] 2024-07-09 10:43:08.654 [[main]-pipeline-manager] geoip - Using geoip database {:path=>"/usr/share/logstash/data/geoip_database_management/1720514220/GeoLite2-City.mmdb"}
+[INFO ] 2024-07-09 10:43:08.744 [[main]-pipeline-manager] javapipeline - Starting pipeline {:pipeline_id=>"main", "pipeline.workers"=>16, "pipeline.batch.size"=>125, "pipeline.batch.delay"=>50, "pipeline.max_inflight"=>2000, "pipeline.sources"=>["/etc/logstash/conf.d/lab_pipeline.yml"], :thread=>"#<Thread:0x99c9a16 /usr/share/logstash/logstash-core/lib/logstash/java_pipeline.rb:134 run>"}
+[INFO ] 2024-07-09 10:43:09.296 [[main]-pipeline-manager] javapipeline - Pipeline Java execution initialization time {"seconds"=>0.55}
+[INFO ] 2024-07-09 10:43:09.329 [[main]-pipeline-manager] javapipeline - Pipeline started {"pipeline.id"=>"main"}
+The stdin plugin is now waiting for input:
+[INFO ] 2024-07-09 10:43:09.341 [Agent thread] agent - Pipelines running {:count=>1, :running_pipelines=>[:main], :non_running_pipelines=>[]}
+Hola 88.0.209.68
+{
+      "@version" => "1",
+        "source" => {
+        "geo" => {
+              "continent_code" => "EU",
+            "country_iso_code" => "ES",
+                 "region_name" => "Ciudad Real",
+                "country_name" => "Spain",
+                 "postal_code" => "13500",
+                    "timezone" => "Europe/Madrid",
+             "region_iso_code" => "ES-CR",
+                    "location" => {
+                "lon" => -4.1025,
+                "lat" => 38.6915
             },
-              "country_name" => "Spain",
-               "region_code" => "M",
-               "region_name" => "Madrid",
-                        "ip" => "95.121.15.62",
-            "continent_code" => "EU",
-                  "latitude" => 40.4143,
-                  "timezone" => "Europe/Madrid",
-                 "longitude" => -3.7016,
-               "postal_code" => "28039",
-                 "city_name" => "Madrid"
+                   "city_name" => "Puertollano"
         },
-          "@version" => "1",
-        "@timestamp" => 2021-02-17T06:14:05.468Z,
-           "message" => "HOLA 95.121.15.62"
+         "ip" => "88.0.209.68"
+    },
+    "@timestamp" => 2024-07-09T08:43:14.006713782Z,
+         "event" => {
+        "original" => "Hola 88.0.209.68"
+    },
+           "ip2" => "88.0.209.68",
+       "message" => "Hola 88.0.209.68",
+          "host" => {
+        "hostname" => "datadope"
     }
-    ^C[WARN ] 2021-02-17 07:15:15.218 [SIGINT handler] runner - SIGINT received. Shutting down.
-    [INFO ] 2021-02-17 07:15:15.417 [Converge PipelineAction::Stop<main>] javapipeline - Pipeline terminated {"pipeline.id"=>"main"}
-    [INFO ] 2021-02-17 07:15:15.455 [LogStash::Runner] runner - Logstash shut down.
+}
   ```
   </details>
 
@@ -177,13 +186,13 @@ Partiendo de la pipeline que acabamos de crear añadir:
     }
     filter {
       grok {
-        match => {"message" => "%{IP:ip} %{TIMESTAMP_ISO8601:Fecha}"}
+        match => {"message" => "%{IP:ip} %{TIMESTAMP_ISO8601:fecha}"}
       }
       geoip {
         source => "ip"
       }
       date {
-        match => ["Fecha", "ISO8601"]
+        match => ["fecha", "ISO8601"]
       }
     }
     output {
@@ -196,36 +205,63 @@ Partiendo de la pipeline que acabamos de crear añadir:
   Ejecución
 
   ```bash
-    ➜  laboratorio_elasticsearch git:(master) ✗ sudo logstash -f pipeline1.conf
-    [INFO ] 2021-02-17 07:35:55.388 [Api Webserver] agent - Successfully started Logstash API endpoint {:port=>9600}
-    Hola mundo 95.121.15.62 2011-04-19T03:44:01.103Z
-    /usr/share/logstash/vendor/bundle/jruby/2.5.0/gems/awesome_print-1.7.0/lib/awesome_print/formatters/base_formatter.rb:31: warning: constant ::Fixnum is deprecated
-    {
-             "geoip" => {
-               "region_name" => "Madrid",
-                 "longitude" => -3.7016,
-                        "ip" => "95.121.15.62",
-            "continent_code" => "EU",
-             "country_code3" => "ES",
-                  "latitude" => 40.4143,
-                 "city_name" => "Madrid",
-              "country_name" => "Spain",
-               "postal_code" => "28039",
-               "region_code" => "M",
-                  "timezone" => "Europe/Madrid",
-                  "location" => {
-                "lon" => -3.7016,
-                "lat" => 40.4143
+    ➜  laboratorio_elasticsearch git:(master) ✗ /usr/share/logstash/bin/logstash -f "/etc/logstash/conf.d/lab_pipeline.yml" 
+Using bundled JDK: /usr/share/logstash/jdk
+WARNING: Could not find logstash.yml which is typically located in $LS_HOME/config or /etc/logstash. You can specify the path using --path.settings. Continuing using the defaults
+Could not find log4j2 configuration at path /usr/share/logstash/config/log4j2.properties. Using default config which logs errors to the console
+[WARN ] 2024-07-09 10:47:41.535 [main] runner - NOTICE: Running Logstash as superuser is not recommended and won't be allowed in the future. Set 'allow_superuser' to 'false' to avoid startup errors in future releases.
+[INFO ] 2024-07-09 10:47:41.546 [main] runner - Starting Logstash {"logstash.version"=>"8.14.1", "jruby.version"=>"jruby 9.4.7.0 (3.1.4) 2024-04-29 597ff08ac1 OpenJDK 64-Bit Server VM 17.0.11+9 on 17.0.11+9 +indy +jit [x86_64-linux]"}
+[INFO ] 2024-07-09 10:47:41.549 [main] runner - JVM bootstrap flags: [-Xms1g, -Xmx1g, -Djava.awt.headless=true, -Dfile.encoding=UTF-8, -Djruby.compile.invokedynamic=true, -XX:+HeapDumpOnOutOfMemoryError, -Djava.security.egd=file:/dev/urandom, -Dlog4j2.isThreadContextMapInheritable=true, -Dlogstash.jackson.stream-read-constraints.max-string-length=200000000, -Dlogstash.jackson.stream-read-constraints.max-number-length=10000, -Djruby.regexp.interruptible=true, -Djdk.io.File.enableADS=true, --add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED, --add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED, --add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED, --add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED, --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED, --add-opens=java.base/java.security=ALL-UNNAMED, --add-opens=java.base/java.io=ALL-UNNAMED, --add-opens=java.base/java.nio.channels=ALL-UNNAMED, --add-opens=java.base/sun.nio.ch=ALL-UNNAMED, --add-opens=java.management/sun.management=ALL-UNNAMED, -Dio.netty.allocator.maxOrder=11]
+[INFO ] 2024-07-09 10:47:41.551 [main] runner - Jackson default value override `logstash.jackson.stream-read-constraints.max-string-length` configured to `200000000`
+[INFO ] 2024-07-09 10:47:41.551 [main] runner - Jackson default value override `logstash.jackson.stream-read-constraints.max-number-length` configured to `10000`
+[WARN ] 2024-07-09 10:47:41.704 [LogStash::Runner] multilocal - Ignoring the 'pipelines.yml' file because modules or command line options are specified
+[INFO ] 2024-07-09 10:47:42.186 [Api Webserver] agent - Successfully started Logstash API endpoint {:port=>9600, :ssl_enabled=>false}
+[INFO ] 2024-07-09 10:47:42.495 [Converge PipelineAction::Create<main>] Reflections - Reflections took 84 ms to scan 1 urls, producing 132 keys and 468 values
+[INFO ] 2024-07-09 10:47:42.818 [Converge PipelineAction::Create<main>] javapipeline - Pipeline `main` is configured with `pipeline.ecs_compatibility: v8` setting. All plugins in this pipeline will default to `ecs_compatibility => v8` unless explicitly configured otherwise.
+[WARN ] 2024-07-09 10:47:42.832 [[main]-pipeline-manager] grok - ECS v8 support is a preview of the unreleased ECS v8, and uses the v1 patterns. When Version 8 of the Elastic Common Schema becomes available, this plugin will need to be updated
+[INFO ] 2024-07-09 10:47:44.374 [[main]-pipeline-manager] databasemanager - By not manually configuring a database path with `database =>`, you accepted and agreed MaxMind EULA. For more details please visit https://www.maxmind.com/en/geolite2/eula
+[INFO ] 2024-07-09 10:47:44.374 [[main]-pipeline-manager] geoip - Using geoip database {:path=>"/usr/share/logstash/data/geoip_database_management/1720514220/GeoLite2-City.mmdb"}
+[INFO ] 2024-07-09 10:47:44.458 [[main]-pipeline-manager] javapipeline - Starting pipeline {:pipeline_id=>"main", "pipeline.workers"=>16, "pipeline.batch.size"=>125, "pipeline.batch.delay"=>50, "pipeline.max_inflight"=>2000, "pipeline.sources"=>["/etc/logstash/conf.d/lab_pipeline.yml"], :thread=>"#<Thread:0x51379d6e /usr/share/logstash/logstash-core/lib/logstash/java_pipeline.rb:134 run>"}
+[INFO ] 2024-07-09 10:47:45.063 [[main]-pipeline-manager] javapipeline - Pipeline Java execution initialization time {"seconds"=>0.6}
+[INFO ] 2024-07-09 10:47:45.088 [[main]-pipeline-manager] javapipeline - Pipeline started {"pipeline.id"=>"main"}
+The stdin plugin is now waiting for input:
+[INFO ] 2024-07-09 10:47:45.099 [Agent thread] agent - Pipelines running {:count=>1, :running_pipelines=>[:main], :non_running_pipelines=>[]}
+Hola 88.0.209.68 2024-07-09T08:48:21+0000
+{
+           "ip2" => "88.0.209.68",
+        "source" => {
+         "ip" => "88.0.209.68",
+        "geo" => {
+                    "location" => {
+                "lon" => -4.1025,
+                "lat" => 38.6915
             },
-             "country_code2" => "ES"
-        },
-              "host" => "blackbox",
-                "ip" => "95.121.15.62",
-             "Fecha" => "2011-04-19T03:44:01.103Z",
-          "@version" => "1",
-        "@timestamp" => 2011-04-19T03:44:01.103Z,
-           "message" => "Hola mundo 95.121.15.62 2011-04-19T03:44:01.103Z"
+                "country_name" => "Spain",
+                 "postal_code" => "13500",
+             "region_iso_code" => "ES-CR",
+                 "region_name" => "Ciudad Real",
+                   "city_name" => "Puertollano",
+                    "timezone" => "Europe/Madrid",
+              "continent_code" => "EU",
+            "country_iso_code" => "ES"
+        }
+    },
+         "fecha" => "2024-07-09T08:48:21+0000",
+       "message" => "Hola 88.0.209.68 2024-07-09T08:48:21+0000",
+    "@timestamp" => 2024-07-09T08:48:21.000Z,
+      "@version" => "1",
+          "host" => {
+        "hostname" => "datadope"
+    },
+         "event" => {
+        "original" => "Hola 88.0.209.68 2024-07-09T08:48:21+0000"
     }
+}
+^C[WARN ] 2024-07-09 10:48:46.254 [SIGINT handler] runner - SIGINT received. Shutting down.
+[INFO ] 2024-07-09 10:48:46.326 [[main]-pipeline-manager] javapipeline - Pipeline terminated {"pipeline.id"=>"main"}
+[INFO ] 2024-07-09 10:48:47.267 [Converge PipelineAction::StopAndDelete<main>] pipelinesregistry - Removed pipeline from registry successfully {:pipeline_id=>:main}
+[INFO ] 2024-07-09 10:48:47.272 [LogStash::Runner] runner - Logstash shut down.
+
   ```
   </details>
 
@@ -272,131 +308,142 @@ Por último debemos ejecutar la pipelines y que se muestren todos los resultados
 
   ```bash
     input {
-      file {
-        path => ["/home/afortes/Documentos/laboratorio_elasticsearch/apache.logs"]
-        start_position => "beginning"
-        mode => "read"
-        type => "apache_access"
-        }
-    }
-    filter {
-      grok {
-        match => {
-          "message" => '%{IPORHOST:clientip} %{USER:ident} %{USER:auth} \[%{HTTPDATE:timestamp}\] "%{WORD:verb} %{DATA:request} HTTP/%{NUMBER:httpversion}" %{NUMBER:response:int} (?:-|%{NUMBER:bytes:int}) %{QS:referrer} %{QS:agent}'
-        }
-      }
-    
-      date {
-        match => [ "timestamp", "dd/MMM/YYYY:HH:mm:ss Z" ]
-        locale => en
-      }
-    
-      geoip {
-        source => "clientip"
-      }
-    
-      useragent {
-        source => "agent"
-        target => "useragent"
-      }
-    }
-    output {
-      stdout { codec => rubydebug }
-    }
+  file {
+
+    path => ["/home/datadope/Documentos/Lab_elastic/apache.logs"]
+
+    start_position => "beginning"
+    mode => "read"
+  }
+}
+
+filter 
+{
+  grok{
+
+  match => {
+"message" => '%{IP:source.ip} %{DATA:client_machine} %{DATA:user.name} \[%{HTTPDATE:timestamp}\] "%{WORD:http.method} %{NOTSPACE:url.original} HTTP/%{DATA:http.version}" %{NUMBER:http.response.status} (?:-|%{NUMBER:http.response.body_bytes}) "%{DATA:http.request.referrer}" "%{DATA:user.agent}"'
+
+ }
+
+  }
+  geoip {
+   source => "source.ip"
+   target => "source_ip"
+  }
+
+date{
+
+match => [ timestamp, "dd/MMM/yyyy:HH:mm:ss Z"]
+
+}
+
+
+}
+
+
+output{
+ stdout{ codec => rubydebug}
+ # elasticsearch{
+ #   hosts => ["172.18.1.3:9200", "172.18.1.2:9200", "172.18.1.4:9200"]
+ #   index => "apache-%{+YYYY-MM-dd}"
+ # }
+}
   ```
 
   Ejecución
 
   ```bash
-    ➜  laboratorio_elasticsearch git:(master) ✗ sudo logstash -f apache_workshow.conf
-    {
-               "path" => "/home/afortes/Documentos/laboratorio_elasticsearch/apache.logs",
-              "bytes" => 1015,
-           "@version" => "1",
-              "agent" => "\"Mozilla/5.0 (iPhone; CPU iPhone OS 7_0_4 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11B554a Safari/9537.53\"",
-           "response" => 200,
-               "host" => "blackbox",
-            "message" => "166.147.88.15 - - [17/May/2015:15:05:44 +0000] \"GET /reset.css HTTP/1.1\" 200 1015 \"http://www.semicomplete.com/\" \"Mozilla/5.0 (iPhone; CPU iPhone OS 7_0_4 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11B554a Safari/9537.53\"",
-            "request" => "/reset.css",
-              "geoip" => {
-                        "ip" => "166.147.88.15",
-                  "latitude" => 37.751,
-                  "timezone" => "America/Chicago",
-             "country_code3" => "US",
-                 "longitude" => -97.822,
-            "continent_code" => "NA",
-                  "location" => {
-                "lat" => 37.751,
-                "lon" => -97.822
-            },
-              "country_name" => "United States",
-             "country_code2" => "US"
-        },
-          "timestamp" => "17/May/2015:15:05:44 +0000",
-           "referrer" => "\"http://www.semicomplete.com/\"",
-              "ident" => "-",
-               "type" => "apache_access",
-         "@timestamp" => 2015-05-17T15:05:44.000Z,
-               "auth" => "-",
-               "verb" => "GET",
-        "httpversion" => "1.1",
-           "clientip" => "166.147.88.15",
-          "useragent" => {
-                "name" => "Mobile Safari",
-            "os_minor" => "0",
-               "major" => "7",
-              "device" => "iPhone",
-            "os_major" => "7",
-                  "os" => "iOS",
-               "minor" => "0",
-             "os_name" => "iOS",
-               "build" => ""
+    ➜  laboratorio_elasticsearch git:(master) ✗ /usr/share/logstash/bin/logstash -f "/etc/logstash/conf.d/lab_pipeline.yml
+    {[INFO ] 2024-07-09 11:33:06.158 [Agent thread] agent - Pipelines running {:count=>1, :running_pipelines=>[:main], :non_running_pipelines=>[]}
+{
+                         "log" => {
+        "file" => {
+            "path" => "/home/datadope/Documentos/Lab_elastic/apache.logs"
         }
-    }
-    {
-               "path" => "/home/afortes/Documentos/laboratorio_elasticsearch/apache.logs",
-              "bytes" => 4877,
-           "@version" => "1",
-              "agent" => "\"Mozilla/5.0 (iPhone; CPU iPhone OS 7_0_4 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11B554a Safari/9537.53\"",
-           "response" => 200,
-               "host" => "blackbox",
-            "message" => "166.147.88.15 - - [17/May/2015:15:05:58 +0000] \"GET /style2.css HTTP/1.1\" 200 4877 \"http://www.semicomplete.com/\" \"Mozilla/5.0 (iPhone; CPU iPhone OS 7_0_4 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11B554a Safari/9537.53\"",
-            "request" => "/style2.css",
-              "geoip" => {
-                        "ip" => "166.147.88.15",
-                  "latitude" => 37.751,
-                  "timezone" => "America/Chicago",
-             "country_code3" => "US",
-                 "longitude" => -97.822,
-            "continent_code" => "NA",
-                  "location" => {
-                "lat" => 37.751,
-                "lon" => -97.822
+    },
+                 "http.method" => "GET",
+                   "timestamp" => "17/May/2015:10:05:24 +0000",
+                  "@timestamp" => 2015-05-17T10:05:24.000Z,
+                   "user.name" => "-",
+                        "host" => {
+        "name" => "datadope"
+    },
+                "http.version" => "1.1",
+                   "source.ip" => "83.149.9.216",
+                       "event" => {
+        "original" => "83.149.9.216 - - [17/May/2015:10:05:24 +0000] \"GET /presentations/logstash-monitorama-2013/images/frontend-response-codes.png HTTP/1.1\" 200 52878 \"http://semicomplete.com/presentations/logstash-monitorama-2013/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.77 Safari/537.36\""
+    },
+       "http.request.referrer" => "http://semicomplete.com/presentations/logstash-monitorama-2013/",
+                    "@version" => "1",
+        "http.response.status" => "200",
+                  "user.agent" => "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.77 Safari/537.36",
+                     "message" => "83.149.9.216 - - [17/May/2015:10:05:24 +0000] \"GET /presentations/logstash-monitorama-2013/images/frontend-response-codes.png HTTP/1.1\" 200 52878 \"http://semicomplete.com/presentations/logstash-monitorama-2013/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.77 Safari/537.36\"",
+              "client_machine" => "-",
+                "url.original" => "/presentations/logstash-monitorama-2013/images/frontend-response-codes.png",
+    "http.response.body_bytes" => "52878",
+                   "source_ip" => {
+        "geo" => {
+                 "postal_code" => "102090",
+                    "location" => {
+                "lon" => 37.6171,
+                "lat" => 55.7483
             },
-              "country_name" => "United States",
-             "country_code2" => "US"
+              "continent_code" => "EU",
+                    "timezone" => "Europe/Moscow",
+                "country_name" => "Russia",
+             "region_iso_code" => "RU-MOW",
+                 "region_name" => "Moscow",
+                   "city_name" => "Moscow",
+            "country_iso_code" => "RU"
         },
-          "timestamp" => "17/May/2015:15:05:58 +0000",
-           "referrer" => "\"http://www.semicomplete.com/\"",
-              "ident" => "-",
-               "type" => "apache_access",
-         "@timestamp" => 2015-05-17T15:05:58.000Z,
-               "auth" => "-",
-               "verb" => "GET",
-        "httpversion" => "1.1",
-           "clientip" => "166.147.88.15",
-          "useragent" => {
-                "name" => "Mobile Safari",
-            "os_minor" => "0",
-               "major" => "7",
-              "device" => "iPhone",
-            "os_major" => "7",
-                  "os" => "iOS",
-               "minor" => "0",
-             "os_name" => "iOS",
-               "build" => ""
-        }
+         "ip" => "83.149.9.216"
     }
+}
+{
+                         "log" => {
+        "file" => {
+            "path" => "/home/datadope/Documentos/Lab_elastic/apache.logs"
+        }
+    },
+                 "http.method" => "GET",
+                   "timestamp" => "17/May/2015:10:05:14 +0000",
+                  "@timestamp" => 2015-05-17T10:05:14.000Z,
+                   "user.name" => "-",
+                        "host" => {
+        "name" => "datadope"
+    },
+                "http.version" => "1.1",
+                   "source.ip" => "93.114.45.13",
+                       "event" => {
+        "original" => "93.114.45.13 - - [17/May/2015:10:05:14 +0000] \"GET /articles/dynamic-dns-with-dhcp/ HTTP/1.1\" 200 18848 \"http://www.google.ro/url?sa=t&rct=j&q=&esrc=s&source=web&cd=2&ved=0CCwQFjAB&url=http%3A%2F%2Fwww.semicomplete.com%2Farticles%2Fdynamic-dns-with-dhcp%2F&ei=W88AU4n9HOq60QXbv4GwBg&usg=AFQjCNEF1X4Rs52UYQyLiySTQxa97ozM4g&bvm=bv.61535280,d.d2k\" \"Mozilla/5.0 (X11; Linux x86_64; rv:25.0) Gecko/20100101 Firefox/25.0\""
+    },
+       "http.request.referrer" => "http://www.google.ro/url?sa=t&rct=j&q=&esrc=s&source=web&cd=2&ved=0CCwQFjAB&url=http%3A%2F%2Fwww.semicomplete.com%2Farticles%2Fdynamic-dns-with-dhcp%2F&ei=W88AU4n9HOq60QXbv4GwBg&usg=AFQjCNEF1X4Rs52UYQyLiySTQxa97ozM4g&bvm=bv.61535280,d.d2k",
+                    "@version" => "1",
+        "http.response.status" => "200",
+                  "user.agent" => "Mozilla/5.0 (X11; Linux x86_64; rv:25.0) Gecko/20100101 Firefox/25.0",
+                     "message" => "93.114.45.13 - - [17/May/2015:10:05:14 +0000] \"GET /articles/dynamic-dns-with-dhcp/ HTTP/1.1\" 200 18848 \"http://www.google.ro/url?sa=t&rct=j&q=&esrc=s&source=web&cd=2&ved=0CCwQFjAB&url=http%3A%2F%2Fwww.semicomplete.com%2Farticles%2Fdynamic-dns-with-dhcp%2F&ei=W88AU4n9HOq60QXbv4GwBg&usg=AFQjCNEF1X4Rs52UYQyLiySTQxa97ozM4g&bvm=bv.61535280,d.d2k\" \"Mozilla/5.0 (X11; Linux x86_64; rv:25.0) Gecko/20100101 Firefox/25.0\"",
+              "client_machine" => "-",
+                "url.original" => "/articles/dynamic-dns-with-dhcp/",
+    "http.response.body_bytes" => "18848",
+                   "source_ip" => {
+        "geo" => {
+                 "postal_code" => "052041",
+                    "location" => {
+                "lon" => 26.1006,
+                "lat" => 44.4291
+            },
+              "continent_code" => "EU",
+                    "timezone" => "Europe/Bucharest",
+                "country_name" => "Romania",
+             "region_iso_code" => "RO-B",
+                 "region_name" => "București",
+                   "city_name" => "Bucharest",
+            "country_iso_code" => "RO"
+        },
+         "ip" => "93.114.45.13"
+    }
+}
     (...)
   ```
   </details>
@@ -421,135 +468,143 @@ Para este ejercicio partiremos de la pipeline anteriormente creada y tendremos q
 
   ```bash
     input {
-      file {
-        path => ["/home/afortes/Documentos/laboratorio_elasticsearch/apache.logs"]
-        start_position => "beginning"
-        mode => "read"
-        type => "apache_access"
-        }
-    }
-    filter {
-      grok {
-        match => {
-          "message" => '%{IPORHOST:clientip} %{USER:ident} %{USER:auth} \[%{HTTPDATE:timestamp}\] "%{WORD:verb} %{DATA:request} HTTP/%{NUMBER:httpversion}" %{NUMBER:response:int} (?:-|%{NUMBER:bytes:int}) %{QS:referrer} %{QS:agent}'
-        }
-      }
-    
-      date {
-        match => [ "timestamp", "dd/MMM/YYYY:HH:mm:ss Z" ]
-        locale => en
-      }
-    
-      geoip {
-        source => "clientip"
-      }
-    
-      useragent {
-        source => "agent"
-        target => "useragent"
-      }
-    }
-    output {
-      stdout { codec => rubydebug }
-      elasticsearch {
-          hosts => ["172.18.1.2:9200","172.18.1.3:9200","172.18.1.4:9200"]
-          index => "apache-%{+YYYY.MM.dd}"
-      }
-    }
+  file {
+
+    path => ["/home/datadope/Documentos/Lab_elastic/apache.logs"]
+
+    start_position => "beginning"
+    mode => "read"
+  }
+}
+
+filter 
+{
+  grok{
+
+  match => {
+"message" => '%{IP:source.ip} %{DATA:client_machine} %{DATA:user.name} \[%{HTTPDATE:timestamp}\] "%{WORD:http.method} %{NOTSPACE:url.original} HTTP/%{DATA:http.version}" %{NUMBER:http.response.status} (?:-|%{NUMBER:http.response.body_bytes}) "%{DATA:http.request.referrer}" "%{DATA:user.agent}"'
+
+ }
+
+  }
+  geoip {
+   source => "source.ip"
+   target => "source_ip"
+  }
+
+date{
+
+match => [ timestamp, "dd/MMM/yyyy:HH:mm:ss Z"]
+
+}
+
+
+}
+
+
+output{
+  stdout{ codec => rubydebug}
+  elasticsearch{
+    hosts => ["172.18.1.3:9200", "172.18.1.2:9200", "172.18.1.4:9200"]
+    index => "apache-%{+YYYY-MM-dd}"
+  }
+}
   ```
 
   Ejecución
 
   ```bash
-    ➜  laboratorio_elasticsearch git:(master) ✗ sudo logstash -f apache_workshow.conf
+    ➜  laboratorio_elasticsearch git:(master) ✗ /usr/share/logstash/bin/logstash -f "/etc/logstash/conf.d/lab_pipeline.yml
     {
-               "path" => "/home/afortes/Documentos/laboratorio_elasticsearch/apache.logs",
-              "bytes" => 1015,
-           "@version" => "1",
-              "agent" => "\"Mozilla/5.0 (iPhone; CPU iPhone OS 7_0_4 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11B554a Safari/9537.53\"",
-           "response" => 200,
-               "host" => "blackbox",
-            "message" => "166.147.88.15 - - [17/May/2015:15:05:44 +0000] \"GET /reset.css HTTP/1.1\" 200 1015 \"http://www.semicomplete.com/\" \"Mozilla/5.0 (iPhone; CPU iPhone OS 7_0_4 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11B554a Safari/9537.53\"",
-            "request" => "/reset.css",
-              "geoip" => {
-                        "ip" => "166.147.88.15",
-                  "latitude" => 37.751,
-                  "timezone" => "America/Chicago",
-             "country_code3" => "US",
-                 "longitude" => -97.822,
-            "continent_code" => "NA",
-                  "location" => {
-                "lat" => 37.751,
-                "lon" => -97.822
-            },
-              "country_name" => "United States",
-             "country_code2" => "US"
-        },
-          "timestamp" => "17/May/2015:15:05:44 +0000",
-           "referrer" => "\"http://www.semicomplete.com/\"",
-              "ident" => "-",
-               "type" => "apache_access",
-         "@timestamp" => 2015-05-17T15:05:44.000Z,
-               "auth" => "-",
-               "verb" => "GET",
-        "httpversion" => "1.1",
-           "clientip" => "166.147.88.15",
-          "useragent" => {
-                "name" => "Mobile Safari",
-            "os_minor" => "0",
-               "major" => "7",
-              "device" => "iPhone",
-            "os_major" => "7",
-                  "os" => "iOS",
-               "minor" => "0",
-             "os_name" => "iOS",
-               "build" => ""
+               [INFO ] 2024-07-09 11:33:06.158 [Agent thread] agent - Pipelines running {:count=>1, :running_pipelines=>[:main], :non_running_pipelines=>[]}
+{
+                         "log" => {
+        "file" => {
+            "path" => "/home/datadope/Documentos/Lab_elastic/apache.logs"
         }
-    }
-    {
-               "path" => "/home/afortes/Documentos/laboratorio_elasticsearch/apache.logs",
-              "bytes" => 4877,
-           "@version" => "1",
-              "agent" => "\"Mozilla/5.0 (iPhone; CPU iPhone OS 7_0_4 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11B554a Safari/9537.53\"",
-           "response" => 200,
-               "host" => "blackbox",
-            "message" => "166.147.88.15 - - [17/May/2015:15:05:58 +0000] \"GET /style2.css HTTP/1.1\" 200 4877 \"http://www.semicomplete.com/\" \"Mozilla/5.0 (iPhone; CPU iPhone OS 7_0_4 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11B554a Safari/9537.53\"",
-            "request" => "/style2.css",
-              "geoip" => {
-                        "ip" => "166.147.88.15",
-                  "latitude" => 37.751,
-                  "timezone" => "America/Chicago",
-             "country_code3" => "US",
-                 "longitude" => -97.822,
-            "continent_code" => "NA",
-                  "location" => {
-                "lat" => 37.751,
-                "lon" => -97.822
+    },
+                 "http.method" => "GET",
+                   "timestamp" => "17/May/2015:10:05:24 +0000",
+                  "@timestamp" => 2015-05-17T10:05:24.000Z,
+                   "user.name" => "-",
+                        "host" => {
+        "name" => "datadope"
+    },
+                "http.version" => "1.1",
+                   "source.ip" => "83.149.9.216",
+                       "event" => {
+        "original" => "83.149.9.216 - - [17/May/2015:10:05:24 +0000] \"GET /presentations/logstash-monitorama-2013/images/frontend-response-codes.png HTTP/1.1\" 200 52878 \"http://semicomplete.com/presentations/logstash-monitorama-2013/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.77 Safari/537.36\""
+    },
+       "http.request.referrer" => "http://semicomplete.com/presentations/logstash-monitorama-2013/",
+                    "@version" => "1",
+        "http.response.status" => "200",
+                  "user.agent" => "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.77 Safari/537.36",
+                     "message" => "83.149.9.216 - - [17/May/2015:10:05:24 +0000] \"GET /presentations/logstash-monitorama-2013/images/frontend-response-codes.png HTTP/1.1\" 200 52878 \"http://semicomplete.com/presentations/logstash-monitorama-2013/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.77 Safari/537.36\"",
+              "client_machine" => "-",
+                "url.original" => "/presentations/logstash-monitorama-2013/images/frontend-response-codes.png",
+    "http.response.body_bytes" => "52878",
+                   "source_ip" => {
+        "geo" => {
+                 "postal_code" => "102090",
+                    "location" => {
+                "lon" => 37.6171,
+                "lat" => 55.7483
             },
-              "country_name" => "United States",
-             "country_code2" => "US"
+              "continent_code" => "EU",
+                    "timezone" => "Europe/Moscow",
+                "country_name" => "Russia",
+             "region_iso_code" => "RU-MOW",
+                 "region_name" => "Moscow",
+                   "city_name" => "Moscow",
+            "country_iso_code" => "RU"
         },
-          "timestamp" => "17/May/2015:15:05:58 +0000",
-           "referrer" => "\"http://www.semicomplete.com/\"",
-              "ident" => "-",
-               "type" => "apache_access",
-         "@timestamp" => 2015-05-17T15:05:58.000Z,
-               "auth" => "-",
-               "verb" => "GET",
-        "httpversion" => "1.1",
-           "clientip" => "166.147.88.15",
-          "useragent" => {
-                "name" => "Mobile Safari",
-            "os_minor" => "0",
-               "major" => "7",
-              "device" => "iPhone",
-            "os_major" => "7",
-                  "os" => "iOS",
-               "minor" => "0",
-             "os_name" => "iOS",
-               "build" => ""
-        }
+         "ip" => "83.149.9.216"
     }
+}
+{
+                         "log" => {
+        "file" => {
+            "path" => "/home/datadope/Documentos/Lab_elastic/apache.logs"
+        }
+    },
+                 "http.method" => "GET",
+                   "timestamp" => "17/May/2015:10:05:14 +0000",
+                  "@timestamp" => 2015-05-17T10:05:14.000Z,
+                   "user.name" => "-",
+                        "host" => {
+        "name" => "datadope"
+    },
+                "http.version" => "1.1",
+                   "source.ip" => "93.114.45.13",
+                       "event" => {
+        "original" => "93.114.45.13 - - [17/May/2015:10:05:14 +0000] \"GET /articles/dynamic-dns-with-dhcp/ HTTP/1.1\" 200 18848 \"http://www.google.ro/url?sa=t&rct=j&q=&esrc=s&source=web&cd=2&ved=0CCwQFjAB&url=http%3A%2F%2Fwww.semicomplete.com%2Farticles%2Fdynamic-dns-with-dhcp%2F&ei=W88AU4n9HOq60QXbv4GwBg&usg=AFQjCNEF1X4Rs52UYQyLiySTQxa97ozM4g&bvm=bv.61535280,d.d2k\" \"Mozilla/5.0 (X11; Linux x86_64; rv:25.0) Gecko/20100101 Firefox/25.0\""
+    },
+       "http.request.referrer" => "http://www.google.ro/url?sa=t&rct=j&q=&esrc=s&source=web&cd=2&ved=0CCwQFjAB&url=http%3A%2F%2Fwww.semicomplete.com%2Farticles%2Fdynamic-dns-with-dhcp%2F&ei=W88AU4n9HOq60QXbv4GwBg&usg=AFQjCNEF1X4Rs52UYQyLiySTQxa97ozM4g&bvm=bv.61535280,d.d2k",
+                    "@version" => "1",
+        "http.response.status" => "200",
+                  "user.agent" => "Mozilla/5.0 (X11; Linux x86_64; rv:25.0) Gecko/20100101 Firefox/25.0",
+                     "message" => "93.114.45.13 - - [17/May/2015:10:05:14 +0000] \"GET /articles/dynamic-dns-with-dhcp/ HTTP/1.1\" 200 18848 \"http://www.google.ro/url?sa=t&rct=j&q=&esrc=s&source=web&cd=2&ved=0CCwQFjAB&url=http%3A%2F%2Fwww.semicomplete.com%2Farticles%2Fdynamic-dns-with-dhcp%2F&ei=W88AU4n9HOq60QXbv4GwBg&usg=AFQjCNEF1X4Rs52UYQyLiySTQxa97ozM4g&bvm=bv.61535280,d.d2k\" \"Mozilla/5.0 (X11; Linux x86_64; rv:25.0) Gecko/20100101 Firefox/25.0\"",
+              "client_machine" => "-",
+                "url.original" => "/articles/dynamic-dns-with-dhcp/",
+    "http.response.body_bytes" => "18848",
+                   "source_ip" => {
+        "geo" => {
+                 "postal_code" => "052041",
+                    "location" => {
+                "lon" => 26.1006,
+                "lat" => 44.4291
+            },
+              "continent_code" => "EU",
+                    "timezone" => "Europe/Bucharest",
+                "country_name" => "Romania",
+             "region_iso_code" => "RO-B",
+                 "region_name" => "București",
+                   "city_name" => "Bucharest",
+            "country_iso_code" => "RO"
+        },
+         "ip" => "93.114.45.13"
+    }
+}
     (...)
   ```
 
@@ -557,9 +612,26 @@ Para este ejercicio partiremos de la pipeline anteriormente creada y tendremos q
 
   ```bash
     ➜  laboratorio_elasticsearch git:(master) ✗ curl -s -XGET "http://172.18.1.2:9200/_cat/indices"
-    green open apache-2015.05.19               ovITiXTbTpuew7aMSvQFmA 1 1  272  0 637.7kb 319.1kb
-    green open apache-2015.05.18               oai7N97AQ2uOqlXB9EVWIA 1 1 2893  0   4.7mb   2.1mb
-    green open apache-2015.05.17               ctqqPtATSrKSSJ75Q2qxuQ 1 1 1632  0   3.2mb   1.6mb
+      green open .internal.alerts-observability.slo.alerts-default-000001           8rOzB3ezRca9VFzNt7EEwA 1 1    0 0   498b  249b  249b
+      green open .internal.alerts-observability.apm.alerts-default-000001           SbHDaxkWRZGmZgznHcdOSg 1 1    0 0   498b  249b  249b
+      green open .internal.alerts-ml.anomaly-detection-health.alerts-default-000001 ojocTn9oQ3qhTfudwqr6Xw 1 1    0 0   498b  249b  249b
+      green open .internal.alerts-security.alerts-default-000001                    iASODSaEQh2mhi-FTJQl9w 1 1    0 0   498b  249b  249b
+      green open .internal.alerts-ml.anomaly-detection.alerts-default-000001        xHpHBDlDTXex5RiMgl075A 1 1    0 0   498b  249b  249b
+      green open apache-2024-07-09                                                  uGut0inuQJy39-ak3LvPEQ 1 1    1 0 22.1kb  11kb  11kb
+      green open .kibana-observability-ai-assistant-kb-000001                       w3vJwivwReGjCNmFqXoDCA 1 1    0 0   498b  249b  249b
+      green open .internal.alerts-observability.uptime.alerts-default-000001        ABKlWUr6Tta4ZRu-g9TJ9w 1 1    0 0   498b  249b  249b
+      green open apache-2015-05-17                                                  Fg38foKtR7a-2raFyqRxPQ 1 1 1632 0  3.8mb 1.9mb 1.9mb
+      green open apache-2015-05-18                                                  FJ97nvE0TsKsDUm_RXzB2Q 1 1 2893 0  5.3mb 2.8mb 2.8mb
+      green open apache-2015-05-19                                                  ynRI9U2nQRGym0LGaAStcA 1 1 2896 0  5.5mb 2.7mb 2.7mb
+      green open .kibana-observability-ai-assistant-conversations-000001            XoRNDL7nRhCFcVAFrLjUbw 1 1    0 0   498b  249b  249b
+      green open .internal.alerts-stack.alerts-default-000001                       vjZ5CQ8zSWasN0TZXE3Urw 1 1    0 0   498b  249b  249b
+      green open .internal.alerts-default.alerts-default-000001                     y_OXoKzwR4qSJPwPEQnSyA 1 1    0 0   498b  249b  249b
+      green open .internal.alerts-observability.logs.alerts-default-000001          T9rzztJuTfqLxRKbjtYeaA 1 1    0 0   498b  249b  249b
+      green open .internal.alerts-transform.health.alerts-default-000001            bW_nl3qHR56wjel5njokBw 1 1    0 0   498b  249b  249b
+      green open .internal.alerts-observability.metrics.alerts-default-000001       fPWKp7vNTRyS53lhlPNs3A 1 1    0 0   498b  249b  249b
+      green open apache-2015-05-20                                                  wircxyQrQOC-dDvKPMsY8g 1 1 2578 0  5.2mb 2.5mb 2.5mb
+      green open .internal.alerts-observability.threshold.alerts-default-000001     v4ARDkW3S2mpkfF728flOQ 1 1    0 0   498b  249b  249b
+
   ```
   Creamos el index pattern en kibana
 
